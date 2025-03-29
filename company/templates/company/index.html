@@ -1,0 +1,73 @@
+{% extends "company/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    {% for company in companies %}
+        <!-- Company Info Card -->
+        <div class="card shadow-lg mb-4">
+            <div class="card-header bg-primary text-white text-center">
+                <h2>{{ company.company_name }} <small>({{ company.company_location }})</small></h2>
+            </div>
+            <div class="card-body">
+                <p><strong>Address:</strong> {{ company.company_location }}</p>
+                <p><strong>Email:</strong> <a href="mailto:{{ company.company_email }}">{{ company.company_email }}</a></p>
+                <p><strong>Phone:</strong> {{ company.company_phone }}</p>
+                   
+                <!-- Add Branch Button -->
+                <a href="{% url 'company:branch_create' company.id %}" class="btn btn-success">➕ Add Branch</a>
+            </div>
+        </div>
+
+        <!-- Branches and Departments Table -->
+        <div class="card shadow-lg">
+            <div class="card-header bg-secondary text-white">
+                <h4>Branches & Departments</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Branch Name</th>
+                            <th>Department Name</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for branch in company.branch_set.all %}
+                            {% for department in branch.department_set.all %}
+                                <tr>
+                                    {% if forloop.first %}
+                                        <td rowspan="{{ branch.department_set.count }}">
+                                            <strong>{{ branch.branch_name }}</strong> <br>
+                                            <small class="text-muted">{{ branch.branch_location }}</small><br><br>
+                                            <a href="{% url 'company:department_create' branch.id %}" class="btn btn-primary btn-sm">➕ Add Department</a>
+                                        </td>
+                                    {% endif %}
+                                    <td><b>{{ department.department_name }}</b></td>
+                                    <td>{{ department.department_description }}</td>
+                                    <td>
+                                        <a href="{% url 'company:department_detail' department.id %}" class="btn btn-primary btn-sm">👁 View</a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td><strong>{{ branch.branch_name }}</strong> <br>
+                                        <small class="text-muted">{{ branch.branch_location }}</small>
+                                    </td>
+                                    <td colspan="2" class="text-muted">No departments available.</td>
+                                    <td><a href="{% url 'company:department_create' branch.id %}" class="btn btn-primary btn-sm">➕ Add Department</a></td>
+                                </tr>
+                            {% endfor %}
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No branches available.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

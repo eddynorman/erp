@@ -1,0 +1,54 @@
+{% extends 'assets/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+<style>
+    .form-label {
+        display: none; /* Hides the label */
+    }
+</style>
+<div class="container">
+    <h2 class="my-4">Add Multiple Assets</h2>
+
+    <form method="post" class="form">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <figure class="figure">
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Asset Name</th>
+                        <th>Category</th>
+                        <th>Department</th>
+                        <th>Initial Purchase Date</th>
+                        <th>Purchase Cost</th>
+                        <th>Quantity</th>
+                        <th>Supplier</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="form-container">
+                    
+                    {% for form in formset %}
+                    <tr class="form-row">
+                        <td>{{ form.name|as_crispy_field }}</td>
+                        <td>{{ form.category|as_crispy_field }}</td>
+                        <td>{{ form.department|as_crispy_field }}</td>
+                        <td>{{ form.initial_purchase_date|as_crispy_field }}</td>
+                        <td>{{ form.purchase_cost|as_crispy_field }}</td>
+                        <td>{{ form.quantity|as_crispy_field }}</td>
+                        <td>{{ form.initial_supplier|as_crispy_field }}</td>
+                    <td><button type="button" class="remove-form btn btn-danger btn-sm">Remove</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </figure>
+        <button type="button" id="add-form" class="btn btn-primary">Add More</button>
+        <input type="submit" class="btn btn-success" value="Save">
+    </form>
+</div>
+
+<script src="{% static 'assets/js/formset.js' %}"></script>  
+{% endblock %}

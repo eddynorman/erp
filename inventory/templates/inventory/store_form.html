@@ -1,0 +1,11 @@
+{% extends "inventory/base.html" %}
+{% block content %}
+    <h2>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Store</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% load crispy_forms_tags %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'inventory:store_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+{% endblock %}

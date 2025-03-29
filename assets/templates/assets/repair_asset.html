@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">Record Asset Repair</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-success">Save Repair</button>
+        <a href="{% url 'assets:asset_detail' asset.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

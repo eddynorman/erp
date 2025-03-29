@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Inventory Management{% endblock %}</title>
+    <link rel="stylesheet" href="{% static "inventory/bootstrap5/css/bootstrap.min.css" %}">
+    <script src="{% static "inventory/bootstrap5/js/bootstrap.bundle.min.js" %}"></script>
+    <link rel="icon" href="{% static "inventory/favicon.ico" %}">
+    <style>
+        /* Make navbar overlap content on small screens */
+        @media (max-width: 768px) {
+            .navbar {
+                position: absolute;
+                width: 100%;
+                z-index: 1000;
+                background: rgba(0, 0, 0, 0.8); /* Semi-transparent */
+            }
+
+            /* Add padding to body to prevent text from hiding under navbar */
+            body {
+                padding-top: 56px; /* Adjust based on navbar height */
+            }
+        }
+    </style>
+    
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'inventory:store_list' %}">Inventory Management</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'inventory:store_list' %}">Home</a>
+                        </li>
+                        {% comment %} <li class="nav-item">
+                            <a class="nav-link" href="{% url 'assets:add_asset' %}">Add Asset</a>
+                        </li> {% endcomment %}
+                        
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="container mt-4">
+        {% block content %}
+        <!-- This is where child templates will insert their specific content -->
+        {% endblock %}
+    </main>
+
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container">
+            <span class="text-muted">© 2025 Your Company Name</span>
+        </div>
+    </footer>
+
+    <script src=""></script> <!-- Bootstrap JS -->
+</body>
+</html>

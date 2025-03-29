@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Employee List{% endblock %}
+{% block content %}
+{% load humanize %}
+<h1>Employee List</h1>
+<a href="{% url 'company:employee_create' %}">Add Employee</a>
+<table class="table table-striped table-bordered table-responsive">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Branch</th>
+            <th>Department</th>
+            <th>Salary</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for employee in employee_list %}
+        <tr>
+            <td>{{ employee.employee_name }}</td>
+            <td>{{ employee.employee_email }}</td>
+            <td>{{ employee.employee_phone }}</td>
+            <td>{{ employee.employee_branch }}</td>
+            <td>{{ employee.employee_department }}</td>
+            <td>{{ employee.employee_salary|floatformat:2|intcomma }}</td>
+            <td><a href="{% url 'company:employee_update' employee.id %}">Edit</a> | <a href="{% url 'company:employee_delete' employee.id %}">Delete</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}  <!-- Load crispy forms tags for better styling -->
+{% block content %}
+<div class="container mt-5">
+    <h2>Mark Damaged Items for {{ asset.name }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}  <!-- Render the form with crispy styles -->
+        
+        <button type="submit" class="btn btn-danger">Mark as Damaged</button>
+    </form>
+    <a href="{% url 'assets:asset_detail' asset.id %}" class="btn btn-secondary mt-3">Back to Asset Details</a>
+</div>
+{% endblock %}

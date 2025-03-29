@@ -1,0 +1,54 @@
+{% extends 'assets/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary">📋 Asset List</h2>
+        <div>
+            <a href="{% url 'assets:add_asset' %}" class="btn btn-primary">➕ Add New Asset</a>
+            <a href="{% url 'assets:general_pdf_report' %}" class="btn btn-danger">📄 Download PDF</a>
+            <a href="{% url 'assets:general_excel_report' %}" class="btn btn-success">📊 Download Excel</a>
+        </div>
+    </div>
+
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <table class="table table-hover table-striped table-bordered">
+                <thead class="bg-dark text-white">
+                    <tr>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Category</th>
+                        <th>Current Value</th>
+                        <th>Usable Qty</th>
+                        <th>Damaged Qty</th>
+                        <th>Disposed Qty</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% load humanize %}
+                    {% for asset in assets %}
+                    <tr>
+                        <td><b>{{ asset.name }}</b></td>
+                        <td>{{ asset.department }}</td>
+                        <td>{{ asset.category }}</td>
+                        <td>${{ asset.purchase_cost|floatformat:2|intcomma }}</td>
+                        <td>{{ asset.available_quantity }}</td>
+                        <td class="text-danger"><b>{{ asset.quantity_damaged }}</b></td>
+                        <td class="text-warning"><b>{{ asset.quantity_disposed }}</b></td>
+                        <td>
+                            <a href="{% url 'assets:asset_detail' asset.id %}" class="btn btn-sm btn-info">🔍 View</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">No assets found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

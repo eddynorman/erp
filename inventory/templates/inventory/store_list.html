@@ -1,0 +1,29 @@
+{% extends 'inventory/base.html' %}
+{% block title %}Stores{% endblock %}
+{% block content %}
+    <h2>Stores</h2>
+    <a href="{% url 'inventory:store_create' %}" class="btn btn-primary mb-3">Add Store</a>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Contact Person</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for store in stores %}
+                <tr>
+                    <td>{{ store.name }}</td>
+                    <td>{{ store.address }}</td>
+                    <td>{{ store.contact_person }}</td>
+                    <td>
+                        <a href="{% url 'inventory:store_edit' store.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{% url 'inventory:store_delete' store.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

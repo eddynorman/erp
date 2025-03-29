@@ -1,0 +1,110 @@
+{% extends 'assets/base.html' %}
+{% block content %}
+{% load static %}
+{% load humanize %}
+
+<div class="container mt-4">
+    <div class="text-center mb-3">
+        <button id="asset-details-button" class="btn btn-primary">📋 Asset Details</button>
+        <button id="asset-history-button" class="btn btn-secondary">📜 Asset History</button>
+    </div>
+
+    <div id="asset-details" class="card shadow-lg p-3">
+        <h2 class="text-primary">{{ asset.name }} Details</h2>
+        <table class="table table-hover table-striped table-bordered">
+            <tr><th>Category</th> <td>{{ asset.category }}</td></tr>
+            <tr><th>Department</th> <td>{{ asset.department }}</td></tr>
+            <tr><th>Available Quantity</th> <td>{{ asset.available_quantity }}</td></tr>
+            <tr><th class="text-danger">Damaged Quantity</th> <td>{{ asset.quantity_damaged }}</td></tr>
+            <tr><th class="text-warning">Disposed Quantity</th> <td>{{ asset.quantity_disposed }}</td></tr>
+            <tr>
+                <th>Actions</th>
+                <td>
+                    <a href="{% url 'assets:add_asset_purchase' asset.id %}" class="btn btn-success btn-sm">➕ Add Purchase</a>
+                    <a href="{% url 'assets:mark_damaged' asset.id %}" class="btn btn-danger btn-sm">❌ Mark as Damaged</a>
+                    <a href="{% url 'assets:repair_asset' asset.id %}" class="btn btn-info btn-sm">🔧 Repair</a>
+                    <a href="{% url 'assets:dispose_asset' asset.id %}" class="btn btn-warning btn-sm">🗑 Dispose</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="asset-history" class="card shadow-lg p-3 mt-3">
+        <h3 class="text-secondary">📜 Asset History</h3>
+        <div class="text-center mb-3">
+            <button id="purchase-history-button" class="btn btn-outline-primary">🛒 Purchase History</button>
+            <button id="damage-history-button" class="btn btn-outline-danger">💥 Damaged Items</button>
+            <button id="repair-history-button" class="btn btn-outline-info">🔧 Repair History</button>
+            <button id="disposal-history-button" class="btn btn-outline-warning">🗑 Disposed Items</button>
+        </div>
+
+        <section id="purchase-history">
+            <h4>🛒 Purchase History</h4>
+            <table class="table table-hover table-striped table-bordered">
+                <thead><tr><th>Date</th><th>Quantity</th><th>Cost</th><th>Supplier</th><th>Actions</th></tr></thead>
+                <tbody>
+                {% for purchase in purchases %}
+                    <tr>
+                        <td>{{ purchase.purchase_date }}</td>
+                        <td>{{ purchase.quantity }}</td>
+                        <td>${{ purchase.price|floatformat:2|intcomma }}</td>
+                        <td>{{ purchase.supplier }}</td>
+                        <td><a href="{% url 'assets:edit_purchase' purchase.id %}" class="btn btn-sm btn-warning">✏ Edit</a></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center text-muted">No purchase history found.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section id="damage-history" class="">
+            <h4>💥 Damaged Items</h4>
+            <table class="table table-hover table-striped table-bordered">
+                <thead><tr><th>Date</th><th>Quantity</th><th>Reason</th></tr></thead>
+                <tbody>
+                {% for damaged in damaged %}
+                    <tr><td>{{ damaged.date }}</td><td>{{ damaged.quantity }}</td><td>{{ damaged.reason }}</td></tr>
+                {% empty %}
+                    <tr><td colspan="3" class="text-center text-muted">No damaged items found.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section id="repair-history" class="">
+            <h4>🔧 Repair History</h4>
+            <table class="table table-hover table-striped table-bordered">
+                <thead><tr><th>Date</th><th>Quantity</th><th>Cost</th><th>Description</th></tr></thead>
+                <tbody>
+                {% for repaired in repaired %}
+                    <tr><td>{{ repaired.date }}</td><td>{{ repaired.quantity }}</td><td>${{ repaired.cost }}</td><td>{{ repaired.description }}</td></tr>
+                {% empty %}
+                    <tr><td colspan="4" class="text-center text-muted">No repair history found.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section id="disposal-history" class="">
+            <h4>🗑 Disposed Items</h4>
+            <table class="table table-hover table-striped table-bordered">
+                <thead><tr><th>Date</th><th>Quantity</th><th>Reason</th></tr></thead>
+                <tbody>
+                {% for disposed in disposed %}
+                    <tr><td>{{ disposed.date }}</td><td>{{ disposed.quantity }}</td><td>{{ disposed.reason }}</td></tr>
+                {% empty %}
+                    <tr><td colspan="3" class="text-center text-muted">No disposed items found.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <div class="text-center mt-3">
+        <a href="{% url 'assets:asset_list' %}" class="btn btn-dark">⬅ Back to Asset List</a>
+    </div>
+</div>
+
+<script src="{% static 'assets/js/asset_detail.js' %}"></script>
+{% endblock %}

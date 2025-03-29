@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Employee Form</h1>
+<form method="post">
+    {% csrf_token %}
+    {% load crispy_forms_tags %}
+    {{ form|crispy }}
+    <button type="submit">Save</button>
+</form>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#id_employee_branch").change(function () {
+            var branchId = $(this).val();
+            $.ajax({
+                url: "{% url 'company:ajax_load_departments' %}",
+                data: { branch_id: branchId },
+                success: function (data) {
+                    $("#id_department").empty();
+                    $.each(data, function (index, department) {
+                        console.log(department);
+                        $("#id_employee_department").append(new Option(department.department_name, department.id));
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

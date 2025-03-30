@@ -8,7 +8,7 @@ class CustomDateInput(forms.DateInput):
 class AssetForm(forms.ModelForm):
     class Meta:
         model = Asset
-        fields = ['name', 'category', 'department', 'initial_purchase_date', 'purchase_cost', 'quantity', 'initial_supplier']
+        fields = ['name', 'type','category', 'department', 'initial_purchase_date', 'purchase_cost', 'quantity', 'initial_supplier']
         widgets = {
             'initial_purchase_date': CustomDateInput(),
         }

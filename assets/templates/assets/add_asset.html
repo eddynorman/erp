@@ -19,6 +19,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Asset Name</th>
+                        <th>Type</th>
                         <th>Category</th>
                         <th>Department</th>
                         <th>Initial Purchase Date</th>
@@ -33,6 +34,7 @@
                     {% for form in formset %}
                     <tr class="form-row">
                         <td>{{ form.name|as_crispy_field }}</td>
+                        <td>{{ form.type|as_crispy_field }}</td>
                         <td>{{ form.category|as_crispy_field }}</td>
                         <td>{{ form.department|as_crispy_field }}</td>
                         <td>{{ form.initial_purchase_date|as_crispy_field }}</td>

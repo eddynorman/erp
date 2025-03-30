@@ -18,7 +18,7 @@ class Asset(models.Model):
     ]
     TYPE_CHOICES = [
         ('fixed asset', 'Fixed Asset'),
-        ('current', 'Current Asset'),
+        ('current asset', 'Current Asset'),
     ]
     
     name = models.CharField(max_length=255)

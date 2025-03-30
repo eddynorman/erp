@@ -27,7 +27,9 @@ class Supplier(models.Model):
 class Item(models.Model):
     name = models.CharField(max_length=200)
     bar_code = models.CharField(max_length=20, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    initial_stock = models.IntegerField(default=0)
     store_stock = models.IntegerField(default=0)
     shop_stock = models.IntegerField(default=0)
     status = models.CharField(max_length=20, default="Active")
@@ -49,13 +51,27 @@ class Item(models.Model):
     def total_stock(self):
         return self.store_stock + self.shop_stock
 
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            self.store_stock = self.initial_stock
+            self.shop_stock = 0
+        super().save(*args, **kwargs)
+    
     def __str__(self):
-        return f"{self.name} | Store: {self.store_stock} | Shop: {self.shop_stock} | Total: {self.total_stock()}"
+        return f"{self.name}"
 
 class StoreItem(models.Model):
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=0)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('store', 'item')  # Ensures an item can't be duplicated in the same store
+
+    def __str__(self):
+        return f"{self.item.name} - {self.store.name}: {self.quantity}"
+
 
 class ItemOtherUnit(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)

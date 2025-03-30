@@ -24,7 +24,7 @@ class Asset(models.Model):
     name = models.CharField(max_length=255)
     category = models.CharField(max_length=100, choices=CATEGORY_CHOICES,default='Equipment')
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='Current Asset')
+    asset_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='Current Asset')
     initial_purchase_date = models.DateField()
     latest_purchase_date = models.DateField(default=None, null=True, blank=True)
     purchase_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Total cost of all purchases

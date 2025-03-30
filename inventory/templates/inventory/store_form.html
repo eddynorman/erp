@@ -1,11 +1,17 @@
 {% extends "inventory/base.html" %}
+{% load static %}
 {% block content %}
-    <h2>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Store</h2>
+    <h2>{% if form.instance.pk %}Edit{% else %}Add{% endif %} {% if form.fields.bar_code %}Item{% else %}Store{% endif %}</h2>
     <form method="post">
         {% csrf_token %}
         {% load crispy_forms_tags %}
         {{ form|crispy }}
         <button type="submit" class="btn btn-primary">Save</button>
-        <a href="{% url 'inventory:store_list' %}" class="btn btn-secondary">Cancel</a>
+        {% if form.fields.bar_code %}
+            <a href="{% url 'inventory:item_list' %}" class="btn btn-secondary">Cancel</a>
+        {% else %}
+            <a href="{% url 'inventory:store_list' %}" class="btn btn-secondary">Cancel</a>
+        {% endif %}
     </form>
+    <script src="{% static "inventory/js/itemform.js" %}"></script>
 {% endblock %}

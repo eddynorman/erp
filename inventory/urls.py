@@ -23,4 +23,8 @@ urlpatterns = [
     path('itemkits/<int:pk>/details/', ItemKitDetailView.as_view(), name='itemkit_detail'),
     path('itemkits/<int:pk>/edit/', ItemKitUpdateView.as_view(), name='itemkit_edit'),
     path('itemkits/<int:pk>/deactivate/', deactivate_item_kit, name='itemkit_deactivate'),
+    path('other_units/', ItemOtherUnitListView.as_view(), name='other_unit_list'),
+    path('other_units/new/', ItemOtherUnitCreateView.as_view(), name='other_unit_create'),
+    path('other_units/<int:pk>/edit/', ItemOtherUnitUpdateView.as_view(), name='other_unit_edit'),
+    path('other_units/<int:pk>/delete/', ItemOtherUnitDeleteView.as_view(), name='other_unit_delete'),
 ]

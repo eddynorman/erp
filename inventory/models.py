@@ -77,7 +77,12 @@ class StoreItem(models.Model):
 class ItemOtherUnit(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     unit = models.CharField(max_length=20)
-    conversion_factor = models.FloatField()
+    smallest_units = models.PositiveIntegerField()
+    buying_price = models.FloatField()
+    selling_price = models.FloatField(default=0)
+    
+    def __str__(self):
+        return f"{self.unit} - {self.smallest_units} {self.item.smallest_unit} of {self.item.name}"
 
 class ItemKit(models.Model):
     name = models.CharField(max_length=200)

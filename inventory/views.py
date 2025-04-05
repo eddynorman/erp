@@ -3,9 +3,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View, DetailView
 from django.http import JsonResponse
 from django.urls import reverse_lazy
-from .models import Store, Supplier, Item, Receiving, Issue, Requisition
+from .models import *
 from .forms import *
-from company.models import Department,Category
+from company.models import Branch, Department, Category
 
 
 class HomeView(View):
@@ -148,3 +148,25 @@ def deactivate_item_kit(request, pk):
     item_kit = get_object_or_404(ItemKit, pk=pk)
     item_kit.deactivate()
     return redirect('inventory:itemkit_list')
+
+class ItemOtherUnitCreateView(CreateView):
+    model = ItemOtherUnit
+    form_class = ItemOtherUnitForm
+    template_name = 'inventory/gen_form.html'
+    success_url = reverse_lazy('inventory:other_unit_list')
+
+class ItemOtherUnitUpdateView(UpdateView):
+    model = ItemOtherUnit
+    form_class = ItemOtherUnitForm
+    template_name = 'inventory/gen_form.html'
+    success_url = reverse_lazy('inventory:other_unit_list')
+
+class ItemOtherUnitListView(ListView):
+    model = ItemOtherUnit
+    template_name = "inventory/other_units.html"
+    context_object_name = 'units'
+
+class ItemOtherUnitDeleteView(DeleteView):
+    model = ItemOtherUnit
+    template_name = 'inventory/gen_confirm_delete.html'
+    success_url = reverse_lazy('inventory:other_unit_list')

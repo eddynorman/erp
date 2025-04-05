@@ -1,0 +1,18 @@
+{% extends "inventory/base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h4>{% if object %}Edit{% else %}Create{% endif %} {{ model_name }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                {{ form|crispy }}
+                <button type="submit" class="btn btn-primary mt-3">Save</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

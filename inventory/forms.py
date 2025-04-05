@@ -90,3 +90,8 @@ ItemKitItemFormSet = inlineformset_factory(
     extra=1,  # Allow adding extra items
     can_delete=True  # Allow deletion
 )
+
+class ItemOtherUnitForm(forms.ModelForm):
+    class Meta:
+        model = ItemOtherUnit
+        fields = ['item', 'unit', 'smallest_units', 'buying_price', 'selling_price']

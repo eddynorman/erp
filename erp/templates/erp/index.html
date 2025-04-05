@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ERP Dashboard</title>
+    <link href=" {% static "bootstrap5/css/bootstrap.min.css" %} " rel="stylesheet">
+    <script src="{% static "bootstrap5/js/bootstrap.bundle.min.js" %}"></script>
+    <link rel="icon" href="{% static "favicon.ico" %}">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .dashboard-card {
+            border-radius: 1rem;
+            transition: transform 0.2s ease-in-out;
+        }
+        .dashboard-card:hover {
+            transform: scale(1.03);
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Mtomawe ERP Dashboard</h2>
+    <div class="row g-4">
+        {% for app in apps %}
+        <div class="col-md-4">
+            <a href="{{ app.link }}" class="text-decoration-none text-dark">
+                <div class="card dashboard-card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h4>{{ app.name }}</h4>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</body>
+</html>

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -63,7 +64,7 @@ ROOT_URLCONF = 'erp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'erp', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -131,10 +132,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
-    BASE_DIR / "static/bootstrap5/css",
-    BASE_DIR / "static/bootstrap5/js",
-    BASE_DIR / "static/js",
+    BASE_DIR / "erp/static",
+    BASE_DIR / "erp/static/bootstrap5/css",
+    BASE_DIR / "erp/static/bootstrap5/js",
+    BASE_DIR / "erp/static/js",
     '/var/www/html/bootstrap5/css',
     '/var/www/html/bootstrap5/js',
 ]

@@ -68,6 +68,12 @@
                 </table>
             </div>
         </div>
+    {% empty %}
+    <div class="alert alert-info">
+        <p>No company found.</p>
+        <a href="{% url 'company:company_create' %}" class="btn btn-primary">➕ Add Company</a>
+    </div>
+
     {% endfor %}
 </div>
 {% endblock %}

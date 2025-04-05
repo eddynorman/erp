@@ -17,4 +17,10 @@ urlpatterns = [
     path('item/<int:pk>/edit/', ItemUpdateView.as_view(), name='item_edit'),
     path('item/<int:pk>/delete/', ItemDeleteView.as_view(), name='item_delete'),
     path('item/new/load-categories/',LoadCategories.as_view(), name='ajax_load_categories'),
+    path('itemkits/new/load-categories/',LoadCategories.as_view(), name='ajax_load_categories'),
+    path('itemkits/', ItemKitListView.as_view(), name='itemkit_list'),
+    path('itemkits/new/', ItemKitCreateView.as_view(), name='itemkit_add'),
+    path('itemkits/<int:pk>/details/', ItemKitDetailView.as_view(), name='itemkit_detail'),
+    path('itemkits/<int:pk>/edit/', ItemKitUpdateView.as_view(), name='itemkit_edit'),
+    path('itemkits/<int:pk>/deactivate/', deactivate_item_kit, name='itemkit_deactivate'),
 ]

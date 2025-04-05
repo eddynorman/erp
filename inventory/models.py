@@ -37,6 +37,7 @@ class Item(models.Model):
     selling_price = models.FloatField(default=0)
     smallest_unit = models.CharField(max_length=20)   
     is_sellable = models.BooleanField(default=True)
+    is_service = models.BooleanField(default=False)
     minimum_stock = models.IntegerField(default=0)
     optimum_stock = models.IntegerField(default=0)
 
@@ -81,9 +82,22 @@ class ItemOtherUnit(models.Model):
 class ItemKit(models.Model):
     name = models.CharField(max_length=200)
     items = models.ManyToManyField(Item, through='ItemKitItem')
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, default="Active")
     selling_price = models.FloatField(default=0)
+    
+    def deactivate(self):
+        self.status = "Inactive"
+        self.save()
 
+    def total_cost(self):
+        """Calculate total buying price of all items in the kit."""
+        return sum(
+            itemkititem.item.buying_price * itemkititem.quantity
+            for itemkititem in self.itemkititem_set.all()
+        )
+    
     def __str__(self):
         return f"{self.name} | Selling Price: {self.selling_price}"
 
@@ -92,6 +106,10 @@ class ItemKitItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
 
+    def subtotal(self):
+        """Calculate the subtotal cost for this item in the kit."""
+        return self.item.buying_price * self.quantity
+    
     def __str__(self):
         return f"Kit: {self.item_kit.name} | Item: {self.item.name} | Qty: {self.quantity}"
 

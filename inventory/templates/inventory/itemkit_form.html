@@ -1,0 +1,109 @@
+{% extends 'inventory/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h4>{% if object %}Edit{% else %}Create{% endif %} Item Kit</h4>
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                {{ form|crispy }}
+
+                <h5 class="mt-3">Items in Kit</h5>
+                {{ formset.management_form }}
+
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="item-kit-table">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="formset-body">
+                            {% for form in formset %}
+                            <tr class="formset-row">
+                                <td>
+                                    {{ form.id }}
+                                    {{ form.item|as_crispy_field }}
+                                </td>
+                                <td>
+                                    {{ form.quantity|as_crispy_field }}
+                                </td>
+                                <td>
+                                    <span class="d-none">
+                                        {{ form.DELETE }}
+                                    </span>
+                                    <button type="button" class="btn btn-danger remove-form-row" title="Remove this item from the kit">Remove</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <button type="button" class="btn btn-success mt-3" id="add-form-row">+ Add Item</button>
+                <button type="submit" class="btn btn-primary mt-3">Save</button>
+                <a href="{% url 'inventory:itemkit_list' %}" class="btn btn-secondary mt-3">Back to List</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const formsetBody = document.getElementById("formset-body");
+    const addButton = document.getElementById("add-form-row");
+    const totalForms = document.getElementById("id_itemkititem_set-TOTAL_FORMS");
+
+    function updateFormIndexes() {
+        const rows = document.querySelectorAll(".formset-row");
+        rows.forEach((row, index) => {
+            row.querySelectorAll("input, select, label").forEach((el) => {
+                if (el.name) el.name = el.name.replace(/itemkititem_set-\d+-/, `itemkititem_set-${index}-`);
+                if (el.id) el.id = el.id.replace(/id_itemkititem_set-\d+-/, `id_itemkititem_set-${index}-`);
+                if (el.htmlFor) el.htmlFor = el.htmlFor.replace(/id_itemkititem_set-\d+-/, `id_itemkititem_set-${index}-`);
+            });
+        });
+        totalForms.value = rows.length;
+    }
+
+    addButton.addEventListener("click", function () {
+        const formNum = parseInt(totalForms.value);
+        const templateRow = formsetBody.querySelector(".formset-row");
+        const newRow = templateRow.cloneNode(true);
+
+        // Clear values
+        newRow.querySelectorAll("input, select").forEach(input => {
+            if (input.name.endsWith("-id")) {
+                input.value = ""; // hidden id field
+            } else if (input.type === "checkbox") {
+                input.checked = false;
+            } else {
+                input.value = "";
+            }
+        });
+
+        formsetBody.appendChild(newRow);
+        updateFormIndexes();
+    });
+
+    // Properly handle row removal
+    formsetBody.addEventListener("click", function (e) {
+        if (e.target.classList.contains("remove-form-row")) {
+            const row = e.target.closest(".formset-row");
+            const deleteInput = row.querySelector("input[type='checkbox'][name$='-DELETE']");
+            if (deleteInput) {
+                deleteInput.checked = true;
+                row.style.display = 'none';
+                row.title = "This item will be removed when saved.";
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

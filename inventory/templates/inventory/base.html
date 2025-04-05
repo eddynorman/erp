@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Inventory Management{% endblock %}</title>
-    <link rel="stylesheet" href="{% static "inventory/bootstrap5/css/bootstrap.min.css" %}">
-    <script src="{% static "inventory/bootstrap5/js/bootstrap.bundle.min.js" %}"></script>
+    <link href=" {% static "bootstrap5/css/bootstrap.min.css" %} " rel="stylesheet">
+    <script src="{% static "bootstrap5/js/bootstrap.bundle.min.js" %}"></script>
+    <link rel="icon" href="{% static "favicon.ico" %}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link rel="icon" href="{% static "inventory/favicon.ico" %}">
     <style>
         /* Make navbar overlap content on small screens */
         .asteriskField {
@@ -42,6 +42,9 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                        </li> 
+                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'inventory:store_list' %}">Stores</a>
                         </li>
                         <li class="nav-item">
@@ -50,9 +53,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'inventory:item_list' %}">Items</a>
                         </li>
-                        {% comment %} <li class="nav-item">
-                            <a class="nav-link" href="{% url 'inventory:customer_list' %}">Customers</a>
-                        </li> {% endcomment %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'inventory:itemkit_list' %}">Item Kits</a>
+                        </li> 
                         
                     </ul>
                 </div>

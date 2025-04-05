@@ -1,0 +1,45 @@
+{% extends 'inventory/base.html' %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h4>Item Kit: {{ itemkit.name }}</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Buying Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for itemkititem in itemkit.itemkititem_set.all %}
+                    <tr>
+                        <td>{{ itemkititem.item.name }}</td>
+                        <td>{{ itemkititem.quantity }}</td>
+                        <td>{{ itemkititem.item.buying_price|floatformat:2|intcomma }}</td>
+                        <td>{{ itemkititem.subtotal|floatformat:2|intcomma }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-success">
+                        <th colspan="3" class="text-end">Total Cost:</th>
+                        <th>{{ itemkit.total_cost|floatformat:2|intcomma }}</th>
+                    </tr>
+                    <tr class="table-success">
+                      <th colspan="3" class="text-end">Selling Price:</th>
+                      <th>{{ itemkit.selling_price|floatformat:2|intcomma }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+            <a href="{% url 'inventory:itemkit_list' %}" class="btn btn-secondary mt-3">Back to List</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

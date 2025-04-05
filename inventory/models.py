@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import F
 from company.models import Department, Category, Employee
 
 # Store for storing items not in the shop/production areas
@@ -11,6 +12,17 @@ class Store(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def update_stock(self, qty, item):
+        print(f"Updating stock for {item.name} in {self.name} by {qty}")
+        if self.storeitem_set.filter(item=item):
+            self.storeitem_set.filter(item=item).update(quantity=F('quantity') + qty)
+            print(f"Updated stock for {item.name} in {self.name} by {qty}")
+            item.calculate_store_stock()
+            print(f"called calculate {item.name} in {self.name} by {qty}")
+        else:
+            StoreItem.objects.create(store=self, item=item, quantity=qty)
+        self.save()
 
 class Supplier(models.Model):
     name = models.CharField(max_length=200)
@@ -41,14 +53,23 @@ class Item(models.Model):
     minimum_stock = models.IntegerField(default=0)
     optimum_stock = models.IntegerField(default=0)
 
-    def adjust_stock(self, qty, is_store=True):
-        """Adjust stock based on whether it is store or shop"""
-        if is_store:
-            self.store_stock += qty
-        else:
-            self.shop_stock += qty
+    def calculate_store_stock(self):
+        """Calculate store stock based on StoreItem objects and adjust store stock."""
+        print("Calculating store stock...")
+        self.store_stock = sum(store_item.quantity for store_item in self.storeitem_set.all())
         self.save()
-
+        
+    def update_shop_stock(self, qty):
+        """Update shop stock based on the given quantity."""
+        if(qty >= 0):
+            self.shop_stock += qty
+            self.save()
+        else:
+            if self.shop_stock >= abs(qty):
+                self.shop_stock += qty
+                self.save()
+            else:
+                raise ValueError("Not enough stock in the shop to adjust.")
     def total_stock(self):
         return self.store_stock + self.shop_stock
 
@@ -70,6 +91,11 @@ class StoreItem(models.Model):
     class Meta:
         unique_together = ('store', 'item')  # Ensures an item can't be duplicated in the same store
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        print(f"Saving StoreItem for {self.item.name} in {self.store.name} with quantity {self.quantity}")
+        self.item.calculate_store_stock()
+    
     def __str__(self):
         return f"{self.item.name} - {self.store.name}: {self.quantity}"
 
@@ -125,9 +151,13 @@ class Adjustment(models.Model):
     reason = models.TextField()
     user_responsible = models.ForeignKey(Employee, on_delete=models.CASCADE)
     in_store = models.BooleanField(default=True)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, null=True, blank=True)
 
     def update_stock(self):
-        self.item.adjust_stock(self.quantity, self.in_store)
+        if self.store:
+            self.store.update_stock(self.quantity,self.item)
+        else:
+            self.item.update_shop_stock(self.quantity)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

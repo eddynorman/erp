@@ -27,4 +27,6 @@ urlpatterns = [
     path('other_units/new/', ItemOtherUnitCreateView.as_view(), name='other_unit_create'),
     path('other_units/<int:pk>/edit/', ItemOtherUnitUpdateView.as_view(), name='other_unit_edit'),
     path('other_units/<int:pk>/delete/', ItemOtherUnitDeleteView.as_view(), name='other_unit_delete'),
+    path('adjustments/', AdjustmentListView.as_view(), name='adjustment_list'),
+    path('adjustments/new/', AdjustmentCreateView.as_view(), name='adjustment_create'),
 ]

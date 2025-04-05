@@ -170,3 +170,15 @@ class ItemOtherUnitDeleteView(DeleteView):
     model = ItemOtherUnit
     template_name = 'inventory/gen_confirm_delete.html'
     success_url = reverse_lazy('inventory:other_unit_list')
+
+class AdjustmentCreateView(CreateView):
+    model = Adjustment
+    form_class = AdjustmentForm
+    template_name = 'inventory/gen_form.html'
+    success_url = reverse_lazy('inventory:adjustment_list')
+
+class AdjustmentListView(ListView):
+    model = Adjustment
+    template_name = 'inventory/adjustment_list.html'
+    context_object_name = 'adjustments'
+

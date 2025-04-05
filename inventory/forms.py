@@ -95,3 +95,10 @@ class ItemOtherUnitForm(forms.ModelForm):
     class Meta:
         model = ItemOtherUnit
         fields = ['item', 'unit', 'smallest_units', 'buying_price', 'selling_price']
+        
+class AdjustmentForm(forms.ModelForm):
+    class Meta:
+        model = Adjustment
+        fields = ['item', 'quantity', 'reason', 'user_responsible','store']
+        
+        

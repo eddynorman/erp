@@ -149,27 +149,27 @@ def deactivate_item_kit(request, pk):
     item_kit.deactivate()
     return redirect('inventory:itemkit_list')
 
-class ItemOtherUnitCreateView(CreateView):
-    model = ItemOtherUnit
-    form_class = ItemOtherUnitForm
+class ItemUnitCreateView(CreateView):
+    model = ItemUnit
+    form_class = ItemUnitForm
     template_name = 'inventory/gen_form.html'
-    success_url = reverse_lazy('inventory:other_unit_list')
+    success_url = reverse_lazy('inventory:unit_list')
 
-class ItemOtherUnitUpdateView(UpdateView):
-    model = ItemOtherUnit
-    form_class = ItemOtherUnitForm
+class ItemUnitUpdateView(UpdateView):
+    model = ItemUnit
+    form_class = ItemUnitForm
     template_name = 'inventory/gen_form.html'
-    success_url = reverse_lazy('inventory:other_unit_list')
+    success_url = reverse_lazy('inventory:unit_list')
 
-class ItemOtherUnitListView(ListView):
-    model = ItemOtherUnit
-    template_name = "inventory/other_units.html"
+class ItemUnitListView(ListView):
+    model = ItemUnit
+    template_name = "inventory/units.html"
     context_object_name = 'units'
 
-class ItemOtherUnitDeleteView(DeleteView):
-    model = ItemOtherUnit
+class ItemUnitDeleteView(DeleteView):
+    model = ItemUnit
     template_name = 'inventory/gen_confirm_delete.html'
-    success_url = reverse_lazy('inventory:other_unit_list')
+    success_url = reverse_lazy('inventory:unit_list')
 
 class AdjustmentCreateView(CreateView):
     model = Adjustment

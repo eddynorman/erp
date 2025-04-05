@@ -77,6 +77,7 @@ class Item(models.Model):
         if self.pk is None:
             self.store_stock = self.initial_stock
             self.shop_stock = 0
+            ItemUnit.objects.create(item=self, unit=self.smallest_unit, smallest_units=1, buying_price=self.buying_price, selling_price=self.selling_price)
         super().save(*args, **kwargs)
     
     def __str__(self):
@@ -100,7 +101,7 @@ class StoreItem(models.Model):
         return f"{self.item.name} - {self.store.name}: {self.quantity}"
 
 
-class ItemOtherUnit(models.Model):
+class ItemUnit(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     unit = models.CharField(max_length=20)
     smallest_units = models.PositiveIntegerField()
@@ -200,6 +201,7 @@ class Receiving(models.Model):
 class ReceivedItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     receiving = models.ForeignKey(Receiving, on_delete=models.CASCADE)
+    unit = models.ForeignKey(ItemUnit, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     unit_price = models.FloatField()
 

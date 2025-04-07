@@ -173,16 +173,23 @@ class Requisition(models.Model):
     items = models.ManyToManyField(Item, through='RequisitionItem')
     user_responsible = models.ForeignKey(Employee, on_delete=models.CASCADE)
     approved = models.BooleanField(default=False)
-    approved_by = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='requisition_approved_by')
+    approved_by = models.ForeignKey(Employee, null=True,default=None,on_delete=models.SET_NULL, related_name='requisition_approved_by')
     approved_date = models.DateTimeField(null=True, blank=True)
 
+    def total_cost(self):
+        return sum(item.total_cost for item in self.requisitionitem_set.all())
+    
     def __str__(self):
-        return f"Dept: {self.department.name} | Approved: {self.approved}"
+        return f"Dept: {self.department} | Approved: {self.approved}"
 
 class RequisitionItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    available_stock = models.IntegerField()
+    unit = models.ForeignKey(ItemUnit,on_delete=models.CASCADE)
     requisition = models.ForeignKey(Requisition, on_delete=models.CASCADE)
     quantity = models.IntegerField()
+    unit_cost = models.FloatField()
+    total_cost = models.FloatField()
 
     def __str__(self):
         return f"{self.item.name} | Req Qty: {self.quantity}"

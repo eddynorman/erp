@@ -3,6 +3,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View, DetailView
 from django.http import JsonResponse
 from django.urls import reverse_lazy
+from django.db import transaction
+from django.contrib import messages
+
 from .models import *
 from .forms import *
 from company.models import Branch, Department, Category
@@ -182,3 +185,133 @@ class AdjustmentListView(ListView):
     template_name = 'inventory/adjustment_list.html'
     context_object_name = 'adjustments'
 
+class RequisitionListView(ListView):
+    model = Requisition
+    template_name = 'inventory/requisition_list.html'
+    context_object_name = 'requisitions'
+    ordering = ['-date']
+
+class RequisitionDetailView(DetailView):
+    model = Requisition
+    template_name = 'inventory/requisition_detail.html'
+    context_object_name = 'requisition'
+    
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context["total_cost"] =sum
+    #     return context
+    
+
+class RequisitionCreateView(CreateView):
+    model = Requisition
+    form_class = RequisitionForm
+    template_name = 'inventory/requisition_form.html'
+    success_url = reverse_lazy('inventory:requisition_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['items_formset'] = RequisitionItemFormSet(self.request.POST)
+        else:
+            context['items_formset'] = RequisitionItemFormSet()
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        items_formset = context['items_formset']
+        
+        with transaction.atomic():
+            self.object = form.save()
+            
+            if items_formset.is_valid():
+                items_formset.instance = self.object
+                items_formset.save()
+            else:
+                return self.form_invalid(form)
+                
+        messages.success(self.request, 'Requisition created successfully.')
+        return super().form_valid(form)
+
+class RequisitionUpdateView(UpdateView):
+    model = Requisition
+    form_class = RequisitionForm
+    template_name = 'inventory/requisition_form.html'
+    success_url = reverse_lazy('inventory:requisition_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['items_formset'] = RequisitionItemFormSet(
+                self.request.POST, instance=self.object
+            )
+        else:
+            context['items_formset'] = RequisitionItemFormSet(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        items_formset = context['items_formset']
+        
+        with transaction.atomic():
+            self.object = form.save()
+            
+            if items_formset.is_valid():
+                items_formset.instance = self.object
+                items_formset.save()
+            else:
+                print("Formset errors:", items_formset.errors)
+                print(items_formset)
+                return self.form_invalid(form)
+                
+        messages.success(self.request, 'Requisition updated successfully.')
+        return super().form_valid(form)
+
+class RequisitionDeleteView(DeleteView):
+    model = Requisition
+    template_name = 'inventory/gen_confirm_delete.html'
+    success_url = reverse_lazy('inventory:requisition_list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Requisition deleted successfully.')
+        return super().delete(request, *args, **kwargs)
+
+class RequisitionApproveView(UpdateView):
+    model = Requisition
+    form_class = RequisitionApprovalForm
+    template_name = 'inventory/requisition_approve.html'
+    success_url = reverse_lazy('inventory:requisition_list')
+    
+    def form_valid(self, form):
+        requisition = form.save(commit=False)
+        if requisition.approved:
+            requisition.approved_date = timezone.now()
+        requisition.save()
+        messages.success(self.request, 'Requisition approval status updated.')
+        return super().form_valid(form)
+
+# AJAX views for dynamic form handling
+def get_item_details(request):
+    item_id = request.GET.get('item_id')
+    if item_id:
+        item = get_object_or_404(Item, id=item_id)
+        units = ItemUnit.objects.filter(item=item)
+        
+        # Return both unit data and their IDs
+        return JsonResponse({
+            'available_stock': item.total_stock(),
+            'units': [{'id': unit.id, 'unit': str(unit.unit)} for unit in units]
+        })
+    return JsonResponse({'error': 'No item selected'})
+
+def get_unit_price(request):
+    unit_id = request.GET.get('unit_id')
+    if not unit_id:
+        return JsonResponse({'error': 'No unit selected'}, status=400)
+    
+    try:
+        unit = ItemUnit.objects.get(id=unit_id)
+        return JsonResponse({
+            'buying_price': unit.buying_price,
+        })
+    except ItemUnit.DoesNotExist:
+        return JsonResponse({'error': 'Unit not found'}, status=404)

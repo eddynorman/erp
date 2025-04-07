@@ -29,4 +29,15 @@ urlpatterns = [
     path('units/<int:pk>/delete/', ItemUnitDeleteView.as_view(), name='unit_delete'),
     path('adjustments/', AdjustmentListView.as_view(), name='adjustment_list'),
     path('adjustments/new/', AdjustmentCreateView.as_view(), name='adjustment_create'),
+    # Requisition URLs
+    path('requisitions/', RequisitionListView.as_view(), name='requisition_list'),
+    path('requisitions/new/', RequisitionCreateView.as_view(), name='requisition_create'),
+    path('requisitions/<int:pk>/', RequisitionDetailView.as_view(), name='requisition_detail'),
+    path('requisitions/<int:pk>/edit/', RequisitionUpdateView.as_view(), name='requisition_update'),
+    path('requisitions/<int:pk>/delete/', RequisitionDeleteView.as_view(), name='requisition_delete'),
+    path('requisitions/<int:pk>/approve/', RequisitionApproveView.as_view(), name='requisition_approve'),
+    
+    # AJAX URLs
+    path('ajax/get-item-details/', get_item_details, name='get-item-details'),
+    path('ajax/get-unit-price/', get_unit_price, name='get-unit-price'),
 ]

@@ -1,0 +1,137 @@
+{% extends 'inventory/base.html' %}
+{% load humanize %}
+
+{% block title %}Requisition Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Requisition #{{ requisition.id }}</h1>
+        <div>
+            <a href="{% url 'inventory:requisition_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            <a href="{% url 'inventory:requisition_update' requisition.id %}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            {% if not requisition.approved %}
+            <a href="{% url 'inventory:requisition_approve' requisition.id %}" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Approve
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Requisition Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Date:</th>
+                            <td>{{ requisition.date|date:"F d, Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Department:</th>
+                            <td>{{ requisition.department }}</td>
+                        </tr>
+                        <tr>
+                            <th>Requested By:</th>
+                            <td>{{ requisition.user_responsible }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                {% if requisition.approved %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if requisition.approved %}
+                        <tr>
+                            <th>Approved By:</th>
+                            <td>{{ requisition.approved_by }}</td>
+                        </tr>
+                        <tr>
+                            <th>Approval Date:</th>
+                            <td>{{ requisition.approved_date|date:"F d, Y H:i" }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Summary</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Total Items:</th>
+                            <td>{{ requisition.requisitionitem_set.count }}</td>
+                        </tr>
+                        <tr>
+                            <th>Total Cost:</th>
+                            <td>{{ requisition.total_cost|floatformat:2|intcomma }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Requisition Items</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Item</th>
+                            <th>Available Stock</th>
+                            <th>Unit</th>
+                            <th>Quantity</th>
+                            <th>Unit Cost</th>
+                            <th>Total Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in requisition.requisitionitem_set.all %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ item.item.name }}</td>
+                            <td>{{ item.available_stock }}</td>
+                            <td>{{ item.unit.unit }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.unit_cost|floatformat:2|intcomma }}</td>
+                            <td>{{ item.total_cost|floatformat:2|intcomma }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No items in this requisition.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="6" class="text-end">Total:</th>
+                            <th>{{ requisition.total_cost|floatformat:2|intcomma }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

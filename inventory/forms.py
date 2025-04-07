@@ -101,4 +101,74 @@ class AdjustmentForm(forms.ModelForm):
         model = Adjustment
         fields = ['item', 'quantity', 'reason', 'user_responsible','store']
         
+class RequisitionForm(forms.ModelForm):
+    class Meta:
+        model = Requisition
+        fields = ['department','user_responsible']
+    
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        branch = Branch.objects.first()
+        self.fields['department'].queryset = branch.department_set.all()
         
+
+class RequisitionForm(forms.ModelForm):
+    class Meta:
+        model = Requisition
+        fields = ['department', 'user_responsible']
+        widgets = {
+            'department': forms.Select(attrs={'class': 'form-select'}),
+            'user_responsible': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+class RequisitionItemForm(forms.ModelForm):
+    class Meta:
+        model = RequisitionItem
+        fields = ['item', 'unit', 'quantity', 'unit_cost', 'total_cost', 'available_stock']
+        widgets = {
+            'item': forms.Select(attrs={'class': 'form-select item-select'}),
+            'unit': forms.Select(attrs={'class': 'form-select unit-select'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control quantity-input'}),
+            'unit_cost': forms.NumberInput(attrs={'class': 'form-control unit-cost', 'readonly': 'readonly'}),
+            'total_cost': forms.NumberInput(attrs={'class': 'form-control total-cost', 'readonly': 'readonly'}),
+            'available_stock': forms.NumberInput(attrs={'class': 'form-control available-stock', 'readonly': 'readonly'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Don't set an empty queryset - instead use all units but let JS filter them
+        if self.instance and self.instance.item_id:
+            self.fields['unit'].queryset = ItemUnit.objects.filter(item=self.instance.item)
+        else:
+            # Use all units instead of none - the JS will filter them appropriately
+            self.fields['unit'].queryset = ItemUnit.objects.all()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        item = cleaned_data.get('item')
+        unit = cleaned_data.get('unit')
+        
+        if item and unit:
+            # Check if the unit belongs to the selected item
+            if not ItemUnit.objects.filter(item=item, id=unit.id).exists():
+                self.add_error('unit', 'Please select a valid unit for this item.')
+        
+        return cleaned_data
+# Create the formset for RequisitionItem
+RequisitionItemFormSet = inlineformset_factory(
+    Requisition, 
+    RequisitionItem,
+    form=RequisitionItemForm,
+    extra=1,
+    can_delete=True
+)
+
+class RequisitionApprovalForm(forms.ModelForm):
+    class Meta:
+        model = Requisition
+        fields = ['approved', 'approved_by']
+        widgets = {
+            'approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'approved_by': forms.Select(attrs={'class': 'form-select'}),
+        }

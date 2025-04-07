@@ -1,0 +1,163 @@
+{% extends 'inventory/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.id %}Edit{% else %}New{% endif %} Requisition
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{% if form.instance.id %}Edit{% else %}New{% endif %} Requisition</h1>
+        <a href="{% url 'inventory:requisition_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" id="requisitionForm">
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form.department|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.user_responsible|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <h4 class="mb-3">Requisition Items</h4>
+                
+                {{ items_formset.management_form }}
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="items-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Available Stock</th>
+                                <th>Unit</th>
+                                <th>Quantity</th>
+                                <th>Unit Cost</th>
+                                <th>Total Cost</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-tbody">
+                            {% for form in items_formset %}
+                                <tr class="item-form">
+                                    <td>
+                                        {{ form.id }}
+                                        {{ form.item|as_crispy_field }}
+                                        {% if form.item.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.item.errors }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.available_stock|as_crispy_field }}
+                                        {% if form.available_stock.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.available_stock.errors }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.unit|as_crispy_field }}
+                                        {% if form.unit.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.unit.errors }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.quantity|as_crispy_field }}
+                                        {% if form.quantity.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.quantity.errors }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.unit_cost|as_crispy_field }}
+                                        {% if form.unit_cost.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.unit_cost.errors }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.total_cost|as_crispy_field }}
+                                        {% if form.total_cost.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.total_cost.errors }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if form.instance.pk %}
+                                        
+                                            {{ form.DELETE }}
+                                            <label for="{{ form.DELETE.id_for_label }}" class="btn btn-sm btn-danger">
+                                                <i class="bi bi-trash"></i>Remove
+                                            </label>
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm btn-danger remove-form">
+                                                <i class="bi bi-trash"></i>Remove
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="button" class="btn btn-success" id="add-item">
+                        <i class="bi bi-plus-circle"></i> Add Item
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Requisition
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Empty form template for JavaScript -->
+<div id="empty-form" class="d-none">
+    <table>
+        <tr class="item-form">
+            <td>
+                {{ items_formset.empty_form.id }}
+                {{ items_formset.empty_form.item|as_crispy_field }}
+            </td>
+            <td>
+                {{ items_formset.empty_form.available_stock|as_crispy_field }}
+            </td>
+            <td>
+                {{ items_formset.empty_form.unit|as_crispy_field }}
+            </td>
+            <td>
+                {{ items_formset.empty_form.quantity|as_crispy_field }}
+            </td>
+            <td>
+                {{ items_formset.empty_form.unit_cost|as_crispy_field }}
+            </td>
+            <td>
+                {{ items_formset.empty_form.total_cost|as_crispy_field }}
+            </td>
+            <td>
+                <button type="button" class="btn btn-sm btn-danger remove-form" value="Remove">
+                    <i class="bi bi-trash"></i>Remove
+                </button>
+            </td>
+        </tr>
+    </table>
+</div>
+<script src="{% static "inventory/js/requisition_form.js" %}"></script>
+
+{% endblock %}

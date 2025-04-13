@@ -1,0 +1,88 @@
+{% extends 'inventory/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Store Issues</h1>
+        <a href="{% url 'inventory:issue_create' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> New Issue Request
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">All Issue Requests</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Store</th>
+                            <th>Sale Point</th>
+                            <th>Requested By</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for issue in issues %}
+                        <tr>
+                            <td>{{ issue.date|date:"M d, Y H:i" }}</td>
+                            <td>{{ issue.store.name }}</td>
+                            <td>{{ issue.sale_point.name }}</td>
+                            <td>{{ issue.requested_by }}</td>
+                            <td>
+                                {% if issue.status == 'pending' %}
+                                    <span class="text-warning">Pending</span>
+                                {% elif issue.status == 'approved' %}
+                                    <span class="text-info">Approved</span>
+                                {% elif issue.status == 'completed' %}
+                                    <span class="text-success">Completed</span>
+                                {% elif issue.status == 'rejected' %}
+                                    <span class="text-danger">Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'inventory:issue_detail' issue.id %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i>View
+                                </a>
+                                
+                                {% if issue.status == 'pending' %}
+                                    <a href="{% url 'inventory:issue_update' issue.id %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-edit"></i>Edit
+                                    </a>
+                                    <a href="{% url 'inventory:issue_approve' issue.id %}" class="btn btn-success btn-sm">
+                                        <i class="fas fa-check"></i> Approve
+                                    </a>
+                                    <a href="{% url 'inventory:issue_reject' issue.id %}" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-times"></i> Reject
+                                    </a>
+                                {% elif issue.status == 'approved' %}
+                                    <a href="{% url 'inventory:issue_complete' issue.id %}" class="btn btn-success btn-sm">
+                                        <i class="fas fa-check-double"></i> Complete
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No issue requests found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

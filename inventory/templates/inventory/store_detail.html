@@ -1,0 +1,204 @@
+{% extends 'inventory/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ store.name }} Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'inventory:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'inventory:store_list' %}">Stores</a></li>
+            <li class="breadcrumb-item active">{{ store.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Store Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h2 class="h4">{{ store.name }}</h2>
+                        <span class="badge {% if store.status == 'Active' %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ store.status }}
+                        </span>
+                    </div>
+                    
+                    <dl class="row">
+                        <dt class="col-sm-4">Branch:</dt>
+                        <dd class="col-sm-8">{{ store.branch }}</dd>
+                        
+                        <dt class="col-sm-4">Address:</dt>
+                        <dd class="col-sm-8">{{ store.address }}</dd>
+                        
+                        <dt class="col-sm-4">Contact:</dt>
+                        <dd class="col-sm-8">{{ store.contact_person }}</dd>
+                        
+                        <dt class="col-sm-4">Phone:</dt>
+                        <dd class="col-sm-8">{{ store.contact_number }}</dd>
+                    </dl>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'inventory:store_edit' store.id %}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil me-1"></i> Edit
+                        </a>
+                        <a href="{% url 'inventory:store_delete' store.id %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash me-1"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Items in Store</h5>
+                    <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addItemModal">
+                        <i class="bi bi-plus-circle me-1"></i> Add Item
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if store.storeitem_set.all %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Category</th>
+                                        <th class="text-center">Quantity</th>
+                                        <th class="text-end">Last Updated</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in store.storeitem_set.all %}
+                                        <tr>
+                                            <td>{{ item.item.name }}</td>
+                                            <td>{{ item.item.category }}</td>
+                                            <td class="text-center">
+                                                {{ item.quantity }} {{ item.item.smallest_unit }}
+                                            </td>
+                                            <td class="text-end">{{ item.last_updated|date:"M d, Y" }}</td>
+                                            <td class="text-end">
+                                                <button class="btn btn-sm btn-outline-secondary edit-item-btn" 
+                                                        data-item-id="{{ item.id }}"
+                                                        data-item-name="{{ item.item.name }}"
+                                                        data-item-qty="{{ item.quantity }}">
+                                                    <i class="bi bi-pencil"></i>Edit
+                                                </button>
+                                                <a href="{% url 'inventory:adjustment_create_for_item' item.item.id %}?store_id={{ store.id }}" class="btn btn-warning btn-sm">
+                                                    <i class="fas fa-balance-scale"></i> Adjust
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>No items found in this store.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Item Modal -->
+<div class="modal fade" id="addItemModal" tabindex="-1" aria-labelledby="addItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addItemModalLabel">Add Item to Store</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- This would be a form to add items to the store -->
+                <form id="addItemForm" method="post" action="{% url 'inventory:add_store_item' store.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="item" class="form-label">Item</label>
+                        <select class="form-select" id="item" name="item" required>
+                            <option value="">Select an item</option>
+                            {% for item in items %}
+                                <option value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="addItemForm" class="btn btn-primary">Add Item</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Item Modal -->
+<div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editItemModalLabel">Edit Item Quantity</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editItemForm" method="post" action="{% url 'inventory:update_store_item' store.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="edit_item_id" name="item_id">
+                    <div class="mb-3">
+                        <label for="edit_item_name" class="form-label">Item</label>
+                        <input type="text" class="form-control" id="edit_item_name" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_quantity" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="edit_quantity" name="quantity" min="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="editItemForm" class="btn btn-primary">Update Quantity</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle edit item buttons
+        const editButtons = document.querySelectorAll('.edit-item-btn');
+        const editModal = new bootstrap.Modal(document.getElementById('editItemModal'));
+        
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.dataset.itemId;
+                const itemName = this.dataset.itemName;
+                const itemQty = this.dataset.itemQty;
+                
+                // Set form values
+                document.getElementById('edit_item_id').value = itemId;
+                document.getElementById('edit_item_name').value = itemName;
+                document.getElementById('edit_quantity').value = itemQty;
+                
+                // Show modal
+                editModal.show();
+            });
+        });
+    });
+</script>
+{% endblock %}

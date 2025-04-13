@@ -8,11 +8,16 @@
     <link href=" {% static "bootstrap5/css/bootstrap.min.css" %} " rel="stylesheet">
     <script src="{% static "bootstrap5/js/bootstrap.bundle.min.js" %}"></script>
     <link rel="icon" href="{% static "favicon.ico" %}">
+    <link href="{% static 'inventory/css/custom.css' %}" rel="stylesheet">
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         /* Make navbar overlap content on small screens */
         .asteriskField {
             color: red;
+        }
+        table tr td div label{
+            display:none;
         }
         @media (max-width: 768px) {
             .navbar {
@@ -34,7 +39,7 @@
 <body>
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container">
+            <div class="container-fluid p-4">
                 <a class="navbar-brand" href="{% url 'inventory:home' %}">Inventory Management</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -46,6 +51,9 @@
                         </li> 
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'inventory:store_list' %}">Stores</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'inventory:salepoint_list' %}">Sale Points</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'inventory:supplier_list' %}">Suppliers</a>
@@ -65,7 +73,21 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'inventory:requisition_list' %}">Requisitions</a>
                         </li>
-
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'inventory:receiving_list' %}">Receivings</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'inventory:transfer_list' %}">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span>Transfers</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'inventory:issue_list' %}">
+                                <i class="fas fa-truck-loading"></i>
+                                <span>Store Issues</span>
+                            </a>
+                        </li>
                         
                     </ul>
                 </div>
@@ -73,7 +95,7 @@
         </nav>
     </header>
 
-    <main role="main" class="container mt-4">
+    <main role="main" class="container-fluid px-5 mt-4">
         {% block content %}
         <!-- This is where child templates will insert their specific content -->
         {% endblock %}

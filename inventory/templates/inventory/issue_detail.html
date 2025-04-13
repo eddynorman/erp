@@ -1,0 +1,139 @@
+{% extends 'inventory/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Issue Request Details</h1>
+        <div>
+            <a href="{% url 'inventory:issue_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Issues
+            </a>
+            
+            {% if issue.status == 'pending' %}
+                <a href="{% url 'inventory:issue_update' issue.id %}" class="btn btn-sm btn-primary shadow-sm">
+                    <i class="fas fa-edit fa-sm text-white-50"></i> Edit
+                </a>
+                <a href="{% url 'inventory:issue_approve' issue.id %}" class="btn btn-sm btn-success shadow-sm">
+                    <i class="fas fa-check fa-sm text-white-50"></i> Approve
+                </a>
+                <a href="{% url 'inventory:issue_reject' issue.id %}" class="btn btn-sm btn-danger shadow-sm">
+                    <i class="fas fa-times fa-sm text-white-50"></i> Reject
+                </a>
+            {% elif issue.status == 'approved' %}
+                <a href="{% url 'inventory:issue_complete' issue.id %}" class="btn btn-sm btn-success shadow-sm">
+                    <i class="fas fa-check-double fa-sm text-white-50"></i> Complete
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Issue Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Date:</div>
+                        <div class="col-md-8">{{ issue.date|date:"M d, Y H:i" }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Store:</div>
+                        <div class="col-md-8">{{ issue.store.name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Sale Point:</div>
+                        <div class="col-md-8">{{ issue.sale_point.name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Status:</div>
+                        <div class="col-md-8">
+                            {% if issue.status == 'pending' %}
+                                <span class="text-warning">Pending</span>
+                            {% elif issue.status == 'approved' %}
+                                <span class="text-info">Approved</span>
+                            {% elif issue.status == 'completed' %}
+                                <span class="text-success">Completed</span>
+                            {% elif issue.status == 'rejected' %}
+                                <span class="text-danger">Rejected</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Requested By:</div>
+                        <div class="col-md-8">{{ issue.requested_by }}</div>
+                    </div>
+                    
+                    {% if issue.approved_by %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Approved By:</div>
+                        <div class="col-md-8">{{ issue.approved_by }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if issue.completed_by %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Completed By:</div>
+                        <div class="col-md-8">{{ issue.completed_by }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Completed Date:</div>
+                        <div class="col-md-8">{{ issue.completed_date|date:"M d, Y H:i" }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if issue.notes %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 font-weight-bold">Notes:</div>
+                        <div class="col-md-8">{{ issue.notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Requested Items</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Unit</th>
+                                    <th>Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in issue.issueditem_set.all %}
+                                <tr>
+                                    <td>{{ item.item.name }}</td>
+                                    <td>{{ item.unit.unit }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No items in this issue request.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

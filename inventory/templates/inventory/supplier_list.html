@@ -21,7 +21,7 @@
                     <td>{{ supplier.contact_person }}</td>
                     <td>{{ supplier.contact_number }}</td>
                     <td>
-                        <a href="{% url 'inventory:supplier_update' supplier.id %}" class="btn btn-secondary">Edit</a>
+                        <a href="{% url 'inventory:supplier_edit' supplier.id %}" class="btn btn-secondary">Edit</a>
                         <a href="{% url 'inventory:supplier_delete' supplier.id %}" class="btn btn-danger">Delete</a>
                     </td>
                 </tr>

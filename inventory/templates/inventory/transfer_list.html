@@ -1,0 +1,84 @@
+{% extends 'inventory/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Inventory Transfers</h1>
+        <a href="{% url 'inventory:transfer_create' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> New Transfer
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">All Transfers</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transfer in transfers %}
+                        <tr>
+                            <td>{{ transfer.date|date:"M d, Y H:i" }}</td>
+                            <td>{{ transfer.get_transfer_type_display }}</td>
+                            <td>
+                                {% if transfer.transfer_type == 'store_to_store' %}
+                                    {{ transfer.from_store.name }}
+                                {% elif transfer.transfer_type == 'salepoint_to_salepoint' %}
+                                    {{ transfer.from_salepoint.name }}
+                                {% else %}
+                                    {{ transfer.from_salepoint.name }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transfer.transfer_type == 'store_to_store' %}
+                                    {{ transfer.to_store.name }}
+                                {% elif transfer.transfer_type == 'salepoint_to_salepoint' %}
+                                    {{ transfer.to_salepoint.name }}
+                                {% else %}
+                                    {{ transfer.to_store.name }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transfer.completed %}
+                                    <span class="badge badge-success">Completed</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'inventory:transfer_detail' transfer.id %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i>View
+                                </a>
+                                {% if not transfer.completed %}
+                                <a href="{% url 'inventory:transfer_update' transfer.id %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-edit"></i>Edit
+                                </a>
+                                <a href="{% url 'inventory:transfer_complete' transfer.id %}" class="btn btn-success btn-sm">
+                                    <i class="fas fa-check"></i> Complete
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No transfers found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

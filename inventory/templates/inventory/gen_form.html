@@ -10,9 +10,36 @@
             <form method="post" class="needs-validation" novalidate>
                 {% csrf_token %}
                 {{ form|crispy }}
-                <button type="submit" class="btn btn-primary mt-3">Save</button>
+                <div class="d-flex justify-content-end gap-2">
+                    {% comment %} <a href="{{ view.get_success_url }}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a> {% endcomment %}
+                    <button type="submit" class="btn btn-primary mt-3">Save</button>
+                </div>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleLocationFields(isStore) {
+        const storeField = document.querySelector('#id_store').closest('.form-group');
+        const salePointField = document.querySelector('#id_sale_point').closest('.form-group');
+        
+        if (isStore) {
+            storeField.style.display = 'block';
+            salePointField.style.display = 'none';
+        } else {
+            storeField.style.display = 'none';
+            salePointField.style.display = 'block';
+        }
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleLocationFields(document.querySelector('#id_in_store').checked);
+    });
+</script>
 {% endblock %}

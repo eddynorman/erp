@@ -1,0 +1,240 @@
+{% extends 'inventory/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            {% if object %}Edit Issue Request{% else %}New Issue Request{% endif %}
+        </h1>
+        <a href="{% url 'inventory:issue_list' %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Issues
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {% if object %}Edit Issue Request Details{% else %}Issue Request Details{% endif %}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="post" id="issueForm">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        {{ form.store|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.sale_point|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.requested_by|as_crispy_field }}
+                    </div>
+                </div>
+                
+                {{ form.notes|as_crispy_field }}
+                
+                <h5 class="mt-4 mb-3">Requested Items</h5>
+                
+                {{ items_formset.management_form }}
+                <div class="card">
+                    <div class="card-body p-0">
+                        <table class="table table-bordered table-striped mb-0" id="items-table">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="text-center">Item</th>
+                                    <th class="text-center">Unit</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-center" style="width: 100px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-tbody">
+                                {% for form in items_formset %}
+                                <tr class="item-form">
+                                    <td>
+                                        {{ form.id }}
+                                        {{ form.item|as_crispy_field }}
+                                    </td>
+                                    <td>
+                                        {{ form.unit|as_crispy_field }}
+                                    </td>
+                                    <td>
+                                        {{ form.quantity|as_crispy_field }}
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        {% if form.instance.pk %}
+                                            <div class="d-none">
+                                                {{ form.DELETE }}
+                                            </div>
+                                            <button class="btn btn-sm btn-danger delete-item-form">Delete</button>
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm btn-danger remove-form">
+                                                <i class="bi bi-trash"></i>Remove
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <button type="button" id="add-item" class="btn btn-info mt-3">
+                    <i class="fas fa-plus"></i> Add Item
+                </button>
+                
+                <div class="mt-4 text-right">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> 
+                        {% if object %}Update Issue Request{% else %}Create Issue Request{% endif %}
+                    </button>
+                    <a href="{% url 'inventory:issue_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="empty-form" class="d-none">
+    <table>
+        <tr class="item-form">
+            <td>
+                {{ items_formset.empty_form.id }}
+                {{ items_formset.empty_form.item|as_crispy_field }}
+            </td>
+            
+            <td>
+                {{ items_formset.empty_form.unit|as_crispy_field }}
+            </td>
+            <td>
+                {{ items_formset.empty_form.quantity|as_crispy_field }}
+            </td>
+            <td>
+                <button type="button" class="btn btn-sm btn-danger remove-form" value="Remove">
+                    <i class="bi bi-trash"></i>Remove
+                </button>
+            </td>
+        </tr>
+    </table>
+</div>
+<script>
+    $(document).ready(function() {
+        let formCount = $("#items-tbody tr").length;
+        // Add item button functionality
+        $("#add-item").click(function (){
+            let newForm = $("#empty-form tr").clone()
+    
+            // Update form index
+            newForm.html(function(i, html) {
+                return html.replace(/__prefix__/g, formCount);
+            });
+            
+            // Add the new form to the table
+            $('#items-tbody').append(newForm);
+            
+            // Update form count in management form
+            $('#id_issueditem_set-TOTAL_FORMS').val(++formCount);
+            
+            // After adding the new form, make sure it has a remove button that actually removes the row
+            newForm.find('.remove-form').click(function() {
+                $(this).closest('tr').remove();
+                
+                // Update form count in management form
+                $('#id_issueditem_set-TOTAL_FORMS').val(--formCount);
+            });
+        })
+        $('.item-form').each(function() {
+            const row = $(this);
+            const deleteCheckbox = row.find('input[id$="-DELETE"]');
+            
+            // If this is an existing item (has an ID)
+            if (row.find('input[id$="-id"]').val()) {
+    
+                // Add a delete button instead
+                const deleteButton = row.find('.delete-item-form');
+                deleteCheckbox.parent().append(deleteButton);
+                
+                // When delete button is clicked
+                deleteButton.click(function() {
+                    // Check the hidden checkbox
+                    deleteCheckbox.prop('checked', true);
+                    // Hide the row
+                    row.hide();
+                    // Optional: Show a message that the item will be removed when saved
+                    const alertMsg = $('<div class="alert alert-warning mt-2">This item will be removed when you save the requisition.</div>');
+                    $('#items-tbody').append(alertMsg);
+                });
+            }
+        });
+        // Handle item selection to load units
+        $('#items-table').on('change', 'select[id$="-item"]', function() {
+            var itemId = $(this).val();
+            var unitSelect = $(this).closest('tr').find('select[id$="-unit"]');
+            
+            if (itemId) {
+                $.ajax({
+                    url: '{% url "inventory:get-item-details" %}',
+                    data: {
+                        'item_id': itemId
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        unitSelect.empty();
+                            $.each(data.units, function(i, unit) {
+                                unitSelect.append($('<option></option>').attr('value', unit.id).text(unit.unit));
+                            });
+                        }
+                    });
+                } else {
+                    unitSelect.empty().append('<option value="">---------</option>');
+                }
+            });
+            
+            // Fix crispy form styling in table cells
+            $('.item-form .form-group').each(function() {
+                $(this).addClass('mb-0');
+            });
+            
+            // Add some additional styling to make the form look better
+            $('.select2-container').css('width', '100%');
+            
+            // Add validation feedback
+            $('#issueForm').on('submit', function() {
+                var valid = true;
+                
+                // Check if at least one item is added
+                if ($('#items-table tbody tr').length < 1) {
+                    alert('Please add at least one item to the issue request.');
+                    valid = false;
+                }
+                
+                // Check if all required fields are filled
+                $('#items-table tbody tr:visible').each(function() {
+                    var item = $(this).find('select[id$="-item"]').val();
+                    var unit = $(this).find('select[id$="-unit"]').val();
+                    var quantity = $(this).find('input[id$="-quantity"]').val();
+                    
+                    if (!item || !unit || !quantity) {
+                        alert('Please fill in all item details (item, unit, and quantity).');
+                        valid = false;
+                        return false;
+                    }
+                });
+                
+                return valid;
+            });
+        });
+</script>
+{% endblock %}

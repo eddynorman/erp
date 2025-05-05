@@ -6,8 +6,8 @@ app_name = "company"
 
 urlpatterns = [
     #login and logout
-    path("login/",auth_views.LoginView.as_view(),name="login"),
-    path("logout/",auth_views.LogoutView.as_view(),name="logout"),
+    path("login/", views.CustomLoginView.as_view(), name="login"),
+    path("logout/", views.CustomLogoutView.as_view(), name="logout"),
     #Company
     path("",views.CompanyView.as_view(),name="index"),
     path("create", views.CompanyCreateView.as_view(),name="company_create"),

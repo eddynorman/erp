@@ -3,11 +3,24 @@ from django.views import generic
 from django.urls import reverse, reverse_lazy
 from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 from .models import *
 from .forms import *
 
 # Create your views here.
+
+class CustomLoginView(LoginView):
+    template_name = 'company/login.html'
+    redirect_authenticated_user = True
+
+    def get_success_url(self):
+        return reverse('home')
+
+class CustomLogoutView(LogoutView):
+    next_page = 'company:login'
 
 class CompanyView(generic.ListView):
     template_name = "company/index.html"

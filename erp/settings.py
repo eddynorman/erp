@@ -61,9 +61,9 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'erp.urls'
-LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'login'
-LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'company:login'
+LOGIN_URL = 'company:login'
 
 
 

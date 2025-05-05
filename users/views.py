@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from .models import CustomGroup, GroupPermission, UserGroup, UserProfile
 from .forms import (
     CustomUserCreationForm, CustomGroupForm, GroupPermissionForm,
-    UserGroupForm, UserEditForm
+    UserGroupForm, UserEditForm, UserProfileForm
 )
 
 @login_required
@@ -34,15 +34,23 @@ def user_create(request):
 @permission_required('auth.change_user')
 def user_edit(request, pk):
     user = get_object_or_404(User, pk=pk)
+    profile = get_object_or_404(UserProfile, user=user)
     if request.method == 'POST':
-        form = UserEditForm(request.POST, instance=user)
-        if form.is_valid():
-            form.save()
+        user_form = UserEditForm(request.POST, instance=user)
+        profile_form = UserProfileForm(request.POST, instance=profile)
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
             messages.success(request, 'User updated successfully.')
             return redirect('users:user_list')
     else:
-        form = UserEditForm(instance=user)
-    return render(request, 'users/user_form.html', {'form': form})
+        user_form = UserEditForm(instance=user)
+        profile_form = UserProfileForm(instance=profile)
+    return render(request, 'users/user_edit.html', {
+        'user_form': user_form,
+        'profile_form': profile_form,
+        'user': user
+    })
 
 @login_required
 @permission_required('auth.delete_user')
@@ -129,4 +137,15 @@ def user_groups(request, pk):
         'form': form,
         'user': user,
         'user_groups': UserGroup.objects.filter(user=user)
+    })
+
+@login_required
+def user_profile(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    profile, created = UserProfile.objects.get_or_create(user=user)
+    user_groups = UserGroup.objects.filter(user=user)
+    return render(request, 'users/user_profile.html', {
+        'user': user,
+        'profile': profile,
+        'user_groups': user_groups
     })

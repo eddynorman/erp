@@ -1,0 +1,10 @@
+{% extends "company/base.html" %}
+{% block title %}Add Employee to Users{% endblock %}
+{% block content %}
+<h1>Add {{ employee.employee_name }} to Users</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Add User</button>
+</form>
+{% endblock %} 

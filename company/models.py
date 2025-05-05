@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.auth.models import User
 
 # Create your models here.
 class Company(models.Model):
@@ -41,19 +42,22 @@ class Category(models.Model):
 class Employee(models.Model):
     employee_name = models.CharField(max_length=100)
     employee_email = models.EmailField()
-    employee_phone = models.CharField(max_length=16)
+    employee_phone = models.CharField(max_length=15)
     employee_address = models.CharField(max_length=200)
-    employee_department = models.ForeignKey(Department,on_delete=models.CASCADE)
-    employee_branch = models.ForeignKey(Branch,on_delete=models.CASCADE)
+    employee_department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    employee_branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
     employee_position = models.CharField(max_length=100)
-    employee_salary = models.FloatField()
-    employee_status = models.CharField(max_length=100, default="Active")
+    employee_salary = models.DecimalField(max_digits=10, decimal_places=2)
+    employee_status = models.CharField(max_length=20, default="Active")
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.employee_name
     
     def deactivate_employee(self):
-        self.employee_status = "Deactivated"
+        self.employee_status = "Inactive"
         self.save()
 
 

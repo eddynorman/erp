@@ -1,7 +1,8 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views import generic
 from django.urls import reverse, reverse_lazy
 from django.http import HttpResponseRedirect, JsonResponse
+from django.contrib.auth.forms import UserCreationForm
 
 from .models import *
 from .forms import *
@@ -103,7 +104,22 @@ class EmployeeDeactivateView(generic.View):
         employee.deactivate_employee()
         return HttpResponseRedirect(reverse("company:employee_list"))
     
-    
+def employee_add_user(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.first_name = employee.first_name
+            user.last_name = employee.last_name
+            user.email = employee.employee_email
+            user.save()
+            employee.user = user
+            employee.save()
+            return redirect('company:employee_list')
+    else:
+        form = UserCreationForm()
+    return render(request, 'company/employee_add_user.html', {'form': form, 'employee': employee})
     
 # def index(request):
 #     companies = Company.objects.all()

@@ -32,18 +32,19 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'company.apps.CompanyConfig',
-    'assets.apps.AssetsConfig',
-    'inventory.apps.InventoryConfig',
-    'crispy_forms',
-    'crispy_bootstrap5',
-    'django.contrib.humanize',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'company.apps.CompanyConfig',
+    'inventory.apps.InventoryConfig',
+    'assets.apps.AssetsConfig',
+    'users.apps.UsersConfig',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'django.contrib.humanize',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -60,6 +61,11 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'erp.urls'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'login'
+LOGIN_URL = 'login'
+
+
 
 TEMPLATES = [
     {

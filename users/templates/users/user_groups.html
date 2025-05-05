@@ -1,0 +1,52 @@
+{% extends "users/base.html" %}
+
+{% block title %}User Groups - {{ user.username }}{% endblock %}
+
+{% block users_content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Groups for {{ user.username }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="post" class="mb-4">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-8">
+                    {{ form.group }}
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">Add to Group</button>
+                </div>
+            </div>
+        </form>
+
+        <h4>Current Groups</h4>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Group Name</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_group in user_groups %}
+                    <tr>
+                        <td>{{ user_group.group.group.name }}</td>
+                        <td>{{ user_group.group.description }}</td>
+                        <td>
+                            <form method="post" action="{% url 'users:user_groups' user.pk %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="remove_group" value="{{ user_group.group.pk }}">
+                                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

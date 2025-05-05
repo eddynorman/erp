@@ -25,7 +25,7 @@
             <td>{{ employee.employee_branch }}</td>
             <td>{{ employee.employee_department }}</td>
             <td>{{ employee.employee_salary|floatformat:2|intcomma }}</td>
-            <td><a href="{% url 'company:employee_update' employee.id %}">Edit</a> | <a href="{% url 'company:employee_delete' employee.id %}">Delete</a></td>
+            <td><a href="{% url 'company:employee_update' employee.id %}">Edit</a> | <a href="{% url 'company:employee_delete' employee.id %}">Delete</a> | <a href="{% url 'company:employee_add_user' employee.id %}" class="btn btn-primary">Add to Users</a></td>
         </tr>
         {% endfor %}
     </tbody>

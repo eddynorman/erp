@@ -1,9 +1,13 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
 
 from . import views
 app_name = "company"
 
 urlpatterns = [
+    #login and logout
+    path("login/",auth_views.LoginView.as_view(),name="login"),
+    path("logout/",auth_views.LogoutView.as_view(),name="logout"),
     #Company
     path("",views.CompanyView.as_view(),name="index"),
     path("create", views.CompanyCreateView.as_view(),name="company_create"),
@@ -24,4 +28,5 @@ urlpatterns = [
     path("employees/<int:pk>/edit",views.EmployeeUpdateView.as_view(),name="employee_update"),
     path("employees/<int:pk>/delete",views.EmployeeDeactivateView.as_view(),name="employee_delete"),
     path('ajax/load-departments/', views.LoadDepartments.as_view(), name='ajax_load_departments'),
+    path('employee/<int:pk>/add_user/', views.employee_add_user, name='employee_add_user'),
 ]

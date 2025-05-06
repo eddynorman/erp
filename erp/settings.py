@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'inventory.apps.InventoryConfig',
     'assets.apps.AssetsConfig',
     'users.apps.UsersConfig',
+    'sales.apps.SalesConfig',
     'crispy_forms',
     'crispy_bootstrap5',
     'django.contrib.humanize',

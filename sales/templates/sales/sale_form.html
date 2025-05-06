@@ -1,0 +1,48 @@
+{% extends 'sales/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block main_content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <a href="{% url 'sales:sale_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get form elements
+        const customerSelect = document.getElementById('id_customer');
+        const salePointSelect = document.getElementById('id_sale_point');
+        const paymentMethodSelect = document.getElementById('id_payment_method');
+
+        // Add event listeners
+        customerSelect.addEventListener('change', function() {
+            // You can add custom validation or fetch customer details here
+        });
+
+        salePointSelect.addEventListener('change', function() {
+            // You can add custom validation or fetch sale point details here
+        });
+
+        paymentMethodSelect.addEventListener('change', function() {
+            // You can add custom validation based on payment method here
+        });
+    });
+</script>
+{% endblock %} 

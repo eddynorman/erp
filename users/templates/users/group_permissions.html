@@ -1,44 +1,177 @@
-{% extends "company/base.html" %}
-{% load crispy_forms_tags %}
+{% extends "users/base.html" %}
+{% load static %}
+
+{% block title %}Group Permissions - ERP System{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Manage Permissions for Group: {{ group.group.name }}</h3>
-                </div>
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-key text-primary me-2"></i>Group Permissions
+            </h1>
+            <p class="text-muted">Manage permissions for {{ group.name }}</p>
+        </div>
+        <div>
+            <a href="{% url 'users:group_form' group.id %}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-edit me-2"></i>Edit Group
+            </a>
+            <a href="{% url 'users:group_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Groups
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Permissions Column -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
+                        
+                        <!-- Search Box -->
                         <div class="mb-4">
-                            <h4>Description</h4>
-                            <p>{{ group.description }}</p>
-                        </div>
-                        <div class="mb-4">
-                            <h4>Permissions</h4>
-                            <div class="row">
-                                {% for permission in form.permissions %}
-                                <div class="col-md-6 mb-2">
-                                    <div class="form-check">
-                                        {{ permission.tag }}
-                                        <label class="form-check-label" for="{{ permission.id_for_label }}">
-                                            {{ permission.choice_label }}
-                                        </label>
-                                    </div>
-                                </div>
-                                {% endfor %}
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control" id="permissionSearch" placeholder="Search permissions...">
                             </div>
                         </div>
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">Save Permissions</button>
-                            <a href="{% url 'users:group_list' %}" class="btn btn-secondary">Cancel</a>
+
+                        <!-- Permissions List -->
+                        <div class="row g-3">
+                            {% for app_name, permissions in permissions_by_app.items %}
+                            <div class="col-md-6 permission-section">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-cube text-primary me-2"></i>{{ app_name }}
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% for permission in permissions %}
+                                        <div class="form-check mb-2 permission-item">
+                                            <input type="checkbox" 
+                                                   class="form-check-input" 
+                                                   name="permissions" 
+                                                   value="{{ permission.id }}"
+                                                   id="permission_{{ permission.id }}"
+                                                   {% if permission in group.permissions.all %}checked{% endif %}>
+                                            <label class="form-check-label" for="permission_{{ permission.id }}">
+                                                {{ permission.name }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'users:group_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Permissions
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
+
+        <!-- Help Column -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle text-primary me-2"></i>Help & Tips
+                    </h5>
+                    <hr>
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Permission Types:</h6>
+                        <ul class="text-muted small">
+                            <li><strong>View:</strong> Can view records</li>
+                            <li><strong>Add:</strong> Can create new records</li>
+                            <li><strong>Change:</strong> Can modify existing records</li>
+                            <li><strong>Delete:</strong> Can remove records</li>
+                        </ul>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Best Practices:</h6>
+                        <ul class="text-muted small">
+                            <li>Follow the principle of least privilege</li>
+                            <li>Review permissions regularly</li>
+                            <li>Document permission changes</li>
+                            <li>Test permissions after changes</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold">Quick Tips:</h6>
+                        <ul class="text-muted small">
+                            <li>Use the search box to find specific permissions</li>
+                            <li>Permissions are grouped by application</li>
+                            <li>Changes take effect immediately</li>
+                            <li>Users may need to log out and back in</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+
+    // Permission search functionality
+    const searchInput = document.getElementById('permissionSearch')
+    const permissionItems = document.querySelectorAll('.permission-item')
+    const permissionSections = document.querySelectorAll('.permission-section')
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase()
+        
+        permissionItems.forEach(item => {
+            const label = item.querySelector('label').textContent.toLowerCase()
+            const parent = item.closest('.permission-section')
+            
+            if (label.includes(searchTerm)) {
+                item.style.display = ''
+                parent.style.display = ''
+            } else {
+                item.style.display = 'none'
+            }
+        })
+
+        // Hide empty sections
+        permissionSections.forEach(section => {
+            const visibleItems = section.querySelectorAll('.permission-item[style=""]').length
+            if (visibleItems === 0) {
+                section.style.display = 'none'
+            }
+        })
+    })
+</script>
 {% endblock %} 

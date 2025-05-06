@@ -1,35 +1,184 @@
 {% extends "users/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
 
-{% block title %}
-    {% if form.instance.pk %}Edit Group{% else %}Create Group{% endif %}
-{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit Group{% else %}New Group{% endif %} - ERP System{% endblock %}
 
-{% block users_content %}
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">
-            {% if form.instance.pk %}Edit Group{% else %}Create Group{% endif %}
-        </h3>
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-user-shield text-primary me-2"></i>
+                {% if form.instance.pk %}Edit Group{% else %}New Group{% endif %}
+            </h1>
+            <p class="text-muted">{% if form.instance.pk %}Update group information{% else %}Create a new user group{% endif %}</p>
+        </div>
+        <a href="{% url 'users:group_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Groups
+        </a>
     </div>
-    <div class="card-body">
-        <form method="post">
-            {% csrf_token %}
-            {% for field in form %}
-            <div class="mb-3">
-                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}
-                <div class="invalid-feedback d-block">
-                    {{ field.errors }}
+
+    <div class="row">
+        <!-- Form Column -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            <!-- Group Name -->
+                            <div class="col-md-12">
+                                <div class="form-floating">
+                                    {{ form.name }}
+                                    <label for="{{ form.name.id_for_label }}">
+                                        <i class="fas fa-users text-muted me-2"></i>Group Name
+                                    </label>
+                                </div>
+                                {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-md-12">
+                                <div class="form-floating">
+                                    {{ form.description }}
+                                    <label for="{{ form.description.id_for_label }}">
+                                        <i class="fas fa-info-circle text-muted me-2"></i>Description
+                                    </label>
+                                </div>
+                                {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.description.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Permissions -->
+                            <div class="col-md-12">
+                                <label class="form-label">
+                                    <i class="fas fa-key text-muted me-2"></i>Permissions
+                                </label>
+                                <div class="border rounded p-3 bg-light">
+                                    <div class="row">
+                                        {% for permission in form.permissions %}
+                                        <div class="col-md-6 mb-2">
+                                            <div class="form-check">
+                                                {{ permission }}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% if form.permissions.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.permissions.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'users:group_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Group
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                {% endif %}
             </div>
-            {% endfor %}
-            <div class="mt-3">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a href="{% url 'users:group_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+
+        <!-- Help Column -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle text-primary me-2"></i>Help & Tips
+                    </h5>
+                    <hr>
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Group Name Requirements:</h6>
+                        <ul class="text-muted small">
+                            <li>Must be unique</li>
+                            <li>Use clear, descriptive names</li>
+                            <li>Consider using prefixes (e.g., "Sales_", "Admin_")</li>
+                        </ul>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Permissions Best Practices:</h6>
+                        <ul class="text-muted small">
+                            <li>Follow the principle of least privilege</li>
+                            <li>Group related permissions together</li>
+                            <li>Review permissions regularly</li>
+                            <li>Document permission changes</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold">Common Group Types:</h6>
+                        <ul class="text-muted small">
+                            <li><strong>Administrators:</strong> Full system access</li>
+                            <li><strong>Managers:</strong> Department-level access</li>
+                            <li><strong>Staff:</strong> Basic operational access</li>
+                            <li><strong>Viewers:</strong> Read-only access</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+
+    // Permission search functionality
+    const permissionSearch = document.createElement('input')
+    permissionSearch.type = 'text'
+    permissionSearch.className = 'form-control mb-3'
+    permissionSearch.placeholder = 'Search permissions...'
+    
+    const permissionsContainer = document.querySelector('.border.rounded.p-3.bg-light')
+    permissionsContainer.parentNode.insertBefore(permissionSearch, permissionsContainer)
+
+    permissionSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase()
+        const checkboxes = document.querySelectorAll('.border.rounded.p-3.bg-light .form-check')
+        
+        checkboxes.forEach(checkbox => {
+            const label = checkbox.querySelector('label').textContent.toLowerCase()
+            const parent = checkbox.closest('.col-md-6')
+            
+            if (label.includes(searchTerm)) {
+                parent.style.display = ''
+            } else {
+                parent.style.display = 'none'
+            }
+        })
+    })
+</script>
 {% endblock %} 

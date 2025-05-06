@@ -1,35 +1,264 @@
 {% extends "users/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
 
-{% block title %}
-    {% if form.instance.pk %}Edit User{% else %}Create User{% endif %}
-{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit User{% else %}New User{% endif %} - ERP System{% endblock %}
 
-{% block users_content %}
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">
-            {% if form.instance.pk %}Edit User{% else %}Create User{% endif %}
-        </h3>
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-user-edit text-primary me-2"></i>
+                {% if form.instance.pk %}Edit User{% else %}New User{% endif %}
+            </h1>
+            <p class="text-muted">{% if form.instance.pk %}Update user information{% else %}Create a new user account{% endif %}</p>
+        </div>
+        <a href="{% url 'users:user_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Users
+        </a>
     </div>
-    <div class="card-body">
-        <form method="post">
-            {% csrf_token %}
-            {% for field in form %}
-            <div class="mb-3">
-                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}
-                <div class="invalid-feedback d-block">
-                    {{ field.errors }}
+
+    <div class="row">
+        <!-- Form Column -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            <!-- Username -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form.username }}
+                                    <label for="{{ form.username.id_for_label }}">
+                                        <i class="fas fa-user text-muted me-2"></i>Username
+                                    </label>
+                                </div>
+                                {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.username.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form.email }}
+                                    <label for="{{ form.email.id_for_label }}">
+                                        <i class="fas fa-envelope text-muted me-2"></i>Email
+                                    </label>
+                                </div>
+                                {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.email.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- First Name -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form.first_name }}
+                                    <label for="{{ form.first_name.id_for_label }}">
+                                        <i class="fas fa-user-tag text-muted me-2"></i>First Name
+                                    </label>
+                                </div>
+                                {% if form.first_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.first_name.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Last Name -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form.last_name }}
+                                    <label for="{{ form.last_name.id_for_label }}">
+                                        <i class="fas fa-user-tag text-muted me-2"></i>Last Name
+                                    </label>
+                                </div>
+                                {% if form.last_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.last_name.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Password -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form.password1 }}
+                                    <label for="{{ form.password1.id_for_label }}">
+                                        <i class="fas fa-lock text-muted me-2"></i>Password
+                                    </label>
+                                </div>
+                                {% if form.password1.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password1.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form.password2 }}
+                                    <label for="{{ form.password2.id_for_label }}">
+                                        <i class="fas fa-lock text-muted me-2"></i>Confirm Password
+                                    </label>
+                                </div>
+                                {% if form.password2.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password2.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Is Active -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        <i class="fas fa-toggle-on text-muted me-2"></i>Active Account
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Is Staff -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    {{ form.is_staff }}
+                                    <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
+                                        <i class="fas fa-user-shield text-muted me-2"></i>Staff Status
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Is Superuser -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    {{ form.is_superuser }}
+                                    <label class="form-check-label" for="{{ form.is_superuser.id_for_label }}">
+                                        <i class="fas fa-user-crown text-muted me-2"></i>Superuser Status
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'users:user_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save User
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                {% endif %}
             </div>
-            {% endfor %}
-            <div class="mt-3">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a href="{% url 'users:user_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+
+        <!-- Help Column -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle text-primary me-2"></i>Help & Tips
+                    </h5>
+                    <hr>
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Username Requirements:</h6>
+                        <ul class="text-muted small">
+                            <li>150 characters or fewer</li>
+                            <li>Letters, digits and @/./+/-/_ only</li>
+                            <li>Must be unique</li>
+                        </ul>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Password Requirements:</h6>
+                        <ul class="text-muted small">
+                            <li>At least 8 characters</li>
+                            <li>Can't be too similar to username</li>
+                            <li>Can't be a commonly used password</li>
+                            <li>Can't be entirely numeric</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold">Account Types:</h6>
+                        <ul class="text-muted small">
+                            <li><strong>Active:</strong> Can log in to the system</li>
+                            <li><strong>Staff:</strong> Can access admin interface</li>
+                            <li><strong>Superuser:</strong> Has all permissions</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+
+    // Password strength meter
+    const passwordInput = document.getElementById('{{ form.password1.id_for_label }}')
+    const passwordFeedback = document.createElement('div')
+    passwordFeedback.className = 'password-strength mt-2'
+    passwordInput.parentNode.appendChild(passwordFeedback)
+
+    passwordInput.addEventListener('input', function() {
+        const password = this.value
+        let strength = 0
+        let feedback = ''
+
+        if (password.length >= 8) strength++
+        if (password.match(/[a-z]/)) strength++
+        if (password.match(/[A-Z]/)) strength++
+        if (password.match(/[0-9]/)) strength++
+        if (password.match(/[^a-zA-Z0-9]/)) strength++
+
+        switch (strength) {
+            case 0:
+            case 1:
+                feedback = '<span class="text-danger">Very Weak</span>'
+                break
+            case 2:
+                feedback = '<span class="text-warning">Weak</span>'
+                break
+            case 3:
+                feedback = '<span class="text-info">Medium</span>'
+                break
+            case 4:
+                feedback = '<span class="text-primary">Strong</span>'
+                break
+            case 5:
+                feedback = '<span class="text-success">Very Strong</span>'
+                break
+        }
+
+        passwordFeedback.innerHTML = feedback
+    })
+</script>
 {% endblock %} 

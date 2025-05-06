@@ -1,24 +1,174 @@
-{% extends "base.html" %}
+{% extends "company/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - ERP System{% endblock %}
+
 {% block content %}
-<h1>Employee Form</h1>
-<form method="post">
-    {% csrf_token %}
-    {% load crispy_forms_tags %}
-    {{ form|crispy }}
-    <button type="submit">Save</button>
-</form>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-user me-2"></i>{{ title }}
+    </h1>
+    <a href="{% url 'company:employee_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Back to Employees
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post" id="employeeForm" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.employee_name.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user me-1"></i>Name
+                                </label>
+                                {{ form.employee_name|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.employee_email.id_for_label }}" class="form-label">
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                </label>
+                                {{ form.employee_email|as_crispy_field }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.employee_phone.id_for_label }}" class="form-label">
+                                    <i class="fas fa-phone me-1"></i>Phone
+                                </label>
+                                {{ form.employee_phone|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.employee_salary.id_for_label }}" class="form-label">
+                                    <i class="fas fa-dollar-sign me-1"></i>Salary
+                                </label>
+                                {{ form.employee_salary|as_crispy_field }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.employee_branch.id_for_label }}" class="form-label">
+                                    <i class="fas fa-building me-1"></i>Branch
+                                </label>
+                                {{ form.employee_branch|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.employee_department.id_for_label }}" class="form-label">
+                                    <i class="fas fa-sitemap me-1"></i>Department
+                                </label>
+                                {{ form.employee_department|as_crispy_field }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'company:employee_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Save Employee
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-info-circle me-2"></i>Help & Tips
+                </h5>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Enter the employee's full name
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Provide a valid email address
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Include a contact phone number
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Select the appropriate branch
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Choose the correct department
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-    $(document).ready(function () {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        const form = document.getElementById('employeeForm');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Phone number formatting
+        const phoneInput = document.getElementById('id_employee_phone');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function(e) {
+                let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
+                e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+            });
+        }
+
+        // Email validation
+        const emailInput = document.getElementById('id_employee_email');
+        if (emailInput) {
+            emailInput.addEventListener('input', function(e) {
+                const email = e.target.value;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (email && !emailRegex.test(email)) {
+                    emailInput.setCustomValidity('Please enter a valid email address');
+                } else {
+                    emailInput.setCustomValidity('');
+                }
+            });
+        }
+
+        // Branch change event
         $("#id_employee_branch").change(function () {
             var branchId = $(this).val();
             $.ajax({
                 url: "{% url 'company:ajax_load_departments' %}",
                 data: { branch_id: branchId },
                 success: function (data) {
-                    $("#id_department").empty();
+                    $("#id_employee_department").empty();
                     $.each(data, function (index, department) {
-                        console.log(department);
                         $("#id_employee_department").append(new Option(department.department_name, department.id));
                     });
                 }

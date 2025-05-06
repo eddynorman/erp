@@ -1,110 +1,408 @@
-{% extends 'assets/base.html' %}
-{% block content %}
+{% extends "assets/base.html" %}
 {% load static %}
-{% load humanize %}
 
-<div class="container mt-4">
-    <div class="text-center mb-3">
-        <button id="asset-details-button" class="btn btn-primary">📋 Asset Details</button>
-        <button id="asset-history-button" class="btn btn-secondary">📜 Asset History</button>
-    </div>
-
-    <div id="asset-details" class="card shadow-lg p-3">
-        <h2 class="text-primary">{{ asset.name }} Details</h2>
-        <table class="table table-hover table-striped table-bordered">
-            <tr><th>Category</th> <td>{{ asset.category }}</td></tr>
-            <tr><th>Department</th> <td>{{ asset.department }}</td></tr>
-            <tr><th>Available Quantity</th> <td>{{ asset.available_quantity }}</td></tr>
-            <tr><th class="text-danger">Damaged Quantity</th> <td>{{ asset.quantity_damaged }}</td></tr>
-            <tr><th class="text-warning">Disposed Quantity</th> <td>{{ asset.quantity_disposed }}</td></tr>
-            <tr>
-                <th>Actions</th>
-                <td>
-                    <a href="{% url 'assets:add_asset_purchase' asset.id %}" class="btn btn-success btn-sm">➕ Add Purchase</a>
-                    <a href="{% url 'assets:mark_damaged' asset.id %}" class="btn btn-danger btn-sm">❌ Mark as Damaged</a>
-                    <a href="{% url 'assets:repair_asset' asset.id %}" class="btn btn-info btn-sm">🔧 Repair</a>
-                    <a href="{% url 'assets:dispose_asset' asset.id %}" class="btn btn-warning btn-sm">🗑 Dispose</a>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <div id="asset-history" class="card shadow-lg p-3 mt-3">
-        <h3 class="text-secondary">📜 Asset History</h3>
-        <div class="text-center mb-3">
-            <button id="purchase-history-button" class="btn btn-outline-primary">🛒 Purchase History</button>
-            <button id="damage-history-button" class="btn btn-outline-danger">💥 Damaged Items</button>
-            <button id="repair-history-button" class="btn btn-outline-info">🔧 Repair History</button>
-            <button id="disposal-history-button" class="btn btn-outline-warning">🗑 Disposed Items</button>
+{% block asset_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ asset.name }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+            <a href="{% url 'assets:edit_asset' asset.id %}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <a href="{% url 'assets:add_purchase' asset.id %}" class="btn btn-sm btn-outline-success">
+                <i class="fas fa-plus"></i> Add Purchase
+            </a>
+            <a href="{% url 'assets:mark_damaged' asset.id %}" class="btn btn-sm btn-outline-warning">
+                <i class="fas fa-exclamation-triangle"></i> Mark Damaged
+            </a>
+            <a href="{% url 'assets:dispose_asset' asset.id %}" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-trash"></i> Dispose
+            </a>
         </div>
-
-        <section id="purchase-history">
-            <h4>🛒 Purchase History</h4>
-            <table class="table table-hover table-striped table-bordered">
-                <thead><tr><th>Date</th><th>Quantity</th><th>Cost</th><th>Supplier</th><th>Actions</th></tr></thead>
-                <tbody>
-                {% for purchase in purchases %}
-                    <tr>
-                        <td>{{ purchase.purchase_date }}</td>
-                        <td>{{ purchase.quantity }}</td>
-                        <td>${{ purchase.price|floatformat:2|intcomma }}</td>
-                        <td>{{ purchase.supplier }}</td>
-                        <td><a href="{% url 'assets:edit_purchase' purchase.id %}" class="btn btn-sm btn-warning">✏ Edit</a></td>
-                    </tr>
-                {% empty %}
-                    <tr><td colspan="5" class="text-center text-muted">No purchase history found.</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </section>
-
-        <section id="damage-history" class="">
-            <h4>💥 Damaged Items</h4>
-            <table class="table table-hover table-striped table-bordered">
-                <thead><tr><th>Date</th><th>Quantity</th><th>Reason</th></tr></thead>
-                <tbody>
-                {% for damaged in damaged %}
-                    <tr><td>{{ damaged.date }}</td><td>{{ damaged.quantity }}</td><td>{{ damaged.reason }}</td></tr>
-                {% empty %}
-                    <tr><td colspan="3" class="text-center text-muted">No damaged items found.</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </section>
-
-        <section id="repair-history" class="">
-            <h4>🔧 Repair History</h4>
-            <table class="table table-hover table-striped table-bordered">
-                <thead><tr><th>Date</th><th>Quantity</th><th>Cost</th><th>Description</th></tr></thead>
-                <tbody>
-                {% for repaired in repaired %}
-                    <tr><td>{{ repaired.date }}</td><td>{{ repaired.quantity }}</td><td>${{ repaired.cost }}</td><td>{{ repaired.description }}</td></tr>
-                {% empty %}
-                    <tr><td colspan="4" class="text-center text-muted">No repair history found.</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </section>
-
-        <section id="disposal-history" class="">
-            <h4>🗑 Disposed Items</h4>
-            <table class="table table-hover table-striped table-bordered">
-                <thead><tr><th>Date</th><th>Quantity</th><th>Reason</th></tr></thead>
-                <tbody>
-                {% for disposed in disposed %}
-                    <tr><td>{{ disposed.date }}</td><td>{{ disposed.quantity }}</td><td>{{ disposed.reason }}</td></tr>
-                {% empty %}
-                    <tr><td colspan="3" class="text-center text-muted">No disposed items found.</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </section>
-    </div>
-
-    <div class="text-center mt-3">
-        <a href="{% url 'assets:asset_list' %}" class="btn btn-dark">⬅ Back to Asset List</a>
     </div>
 </div>
 
-<script src="{% static 'assets/js/asset_detail.js' %}"></script>
+<div class="row">
+    <!-- Asset Information -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Asset Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th>Asset Tag:</th>
+                        <td>{{ asset.asset_tag }}</td>
+                    </tr>
+                    <tr>
+                        <th>Category:</th>
+                        <td>{{ asset.category }}</td>
+                    </tr>
+                    <tr>
+                        <th>Department:</th>
+                        <td>{{ asset.department }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>
+                            <span class="badge badge-{{ asset.get_status_color }}">
+                                {{ asset.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Condition:</th>
+                        <td>{{ asset.get_condition_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Quantity:</th>
+                        <td>{{ asset.quantity }}</td>
+                    </tr>
+                    <tr>
+                        <th>Purchase Cost:</th>
+                        <td>${{ asset.purchase_cost|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Current Value:</th>
+                        <td>${{ asset.current_value|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Expected Lifespan:</th>
+                        <td>{{ asset.expected_lifespan }} years</td>
+                    </tr>
+                    <tr>
+                        <th>Depreciation Rate:</th>
+                        <td>{{ asset.depreciation_rate }}%</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Information -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Maintenance Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th>Last Maintenance:</th>
+                        <td>
+                            {% if asset.last_maintenance_date %}
+                                {{ asset.last_maintenance_date|date:"M d, Y" }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Next Maintenance:</th>
+                        <td>
+                            {% if asset.next_maintenance_date %}
+                                {{ asset.next_maintenance_date|date:"M d, Y" }}
+                            {% else %}
+                                Not scheduled
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Maintenance Status:</th>
+                        <td>
+                            <span class="badge badge-{{ asset.get_maintenance_status_color }}">
+                                {{ asset.get_maintenance_status }}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+                <a href="{% url 'assets:add_maintenance_schedule' asset.id %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-calendar-plus"></i> Schedule Maintenance
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs for Additional Information -->
+<ul class="nav nav-tabs" id="assetTabs" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="purchases-tab" data-toggle="tab" href="#purchases" role="tab">Purchases</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="maintenance-tab" data-toggle="tab" href="#maintenance" role="tab">Maintenance History</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="warranty-tab" data-toggle="tab" href="#warranty" role="tab">Warranty</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="insurance-tab" data-toggle="tab" href="#insurance" role="tab">Insurance</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="documents-tab" data-toggle="tab" href="#documents" role="tab">Documents</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="transfers-tab" data-toggle="tab" href="#transfers" role="tab">Transfer History</a>
+    </li>
+</ul>
+
+<div class="tab-content" id="assetTabsContent">
+    <!-- Purchases Tab -->
+    <div class="tab-pane fade show active" id="purchases" role="tabpanel">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Supplier</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for purchase in asset.assetpurchase_set.all %}
+                    <tr>
+                        <td>{{ purchase.purchase_date|date:"M d, Y" }}</td>
+                        <td>{{ purchase.quantity }}</td>
+                        <td>${{ purchase.price|floatformat:2 }}</td>
+                        <td>{{ purchase.supplier }}</td>
+                        <td>
+                            <a href="{% url 'assets:edit_purchase' purchase.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No purchase records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Maintenance History Tab -->
+    <div class="tab-pane fade" id="maintenance" role="tabpanel">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Cost</th>
+                        <th>Performed By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in asset.maintenancerecord_set.all %}
+                    <tr>
+                        <td>{{ record.start_date|date:"M d, Y" }}</td>
+                        <td>{{ record.get_maintenance_type_display }}</td>
+                        <td>
+                            <span class="badge badge-{{ record.get_status_color }}">
+                                {{ record.get_status_display }}
+                            </span>
+                        </td>
+                        <td>${{ record.cost|floatformat:2 }}</td>
+                        <td>{{ record.performed_by }}</td>
+                        <td>
+                            <a href="{% url 'assets:edit_maintenance_record' record.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No maintenance records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Warranty Tab -->
+    <div class="tab-pane fade" id="warranty" role="tabpanel">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Provider</th>
+                        <th>Warranty Number</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for warranty in asset.assetwarranty_set.all %}
+                    <tr>
+                        <td>{{ warranty.provider }}</td>
+                        <td>{{ warranty.warranty_number }}</td>
+                        <td>{{ warranty.start_date|date:"M d, Y" }}</td>
+                        <td>{{ warranty.end_date|date:"M d, Y" }}</td>
+                        <td>
+                            <span class="badge badge-{{ warranty.get_status_color }}">
+                                {{ warranty.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'assets:edit_warranty' warranty.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No warranty records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Insurance Tab -->
+    <div class="tab-pane fade" id="insurance" role="tabpanel">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Provider</th>
+                        <th>Policy Number</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Coverage Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insurance in asset.assetinsurance_set.all %}
+                    <tr>
+                        <td>{{ insurance.provider }}</td>
+                        <td>{{ insurance.policy_number }}</td>
+                        <td>{{ insurance.start_date|date:"M d, Y" }}</td>
+                        <td>{{ insurance.end_date|date:"M d, Y" }}</td>
+                        <td>${{ insurance.coverage_amount|floatformat:2 }}</td>
+                        <td>
+                            <span class="badge badge-{{ insurance.get_status_color }}">
+                                {{ insurance.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'assets:edit_insurance' insurance.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">No insurance records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Documents Tab -->
+    <div class="tab-pane fade" id="documents" role="tabpanel">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Upload Date</th>
+                        <th>Uploaded By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for document in asset.assetdocument_set.all %}
+                    <tr>
+                        <td>{{ document.title }}</td>
+                        <td>{{ document.get_document_type_display }}</td>
+                        <td>{{ document.upload_date|date:"M d, Y" }}</td>
+                        <td>{{ document.uploaded_by.username }}</td>
+                        <td>
+                            <a href="{{ document.file_path.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <a href="{% url 'assets:edit_document' document.id %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No documents found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Transfer History Tab -->
+    <div class="tab-pane fade" id="transfers" role="tabpanel">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>From Department</th>
+                        <th>To Department</th>
+                        <th>Transfer Date</th>
+                        <th>Transferred By</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transfer in asset.assettransfer_set.all %}
+                    <tr>
+                        <td>{{ transfer.from_department }}</td>
+                        <td>{{ transfer.to_department }}</td>
+                        <td>{{ transfer.transfer_date|date:"M d, Y" }}</td>
+                        <td>{{ transfer.transferred_by.username }}</td>
+                        <td>{{ transfer.reason }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No transfer records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    $(document).ready(function() {
+        // Initialize tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+        
+        // Handle tab persistence
+        let hash = window.location.hash;
+        if (hash) {
+            $('#assetTabs a[href="' + hash + '"]').tab('show');
+        }
+        
+        $('#assetTabs a').on('click', function (e) {
+            e.preventDefault();
+            $(this).tab('show');
+            window.location.hash = this.hash;
+        });
+    });
+</script>
 {% endblock %}

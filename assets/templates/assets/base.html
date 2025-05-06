@@ -1,74 +1,98 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Asset Management{% endblock %}</title>
-    <link href=" {% static "bootstrap5/css/bootstrap.min.css" %} " rel="stylesheet">
-    <script src="{% static "bootstrap5/js/bootstrap.bundle.min.js" %}"></script>
-    <link rel="icon" href="{% static "favicon.ico" %}">
-    <style>
-        /* Make navbar overlap content on small screens */
-        @media (max-width: 768px) {
-            .navbar {
-                position: absolute;
-                width: 100%;
-                z-index: 1000;
-                background: rgba(0, 0, 0, 0.8); /* Semi-transparent */
-            }
+{% extends "base.html" %}
+{% load static %}
 
-            /* Add padding to body to prevent text from hiding under navbar */
-            body {
-                padding-top: 56px; /* Adjust based on navbar height */
-            }
-        }
-    </style>
-    
-</head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container">
-                <a class="navbar-brand" href="{% url 'assets:asset_list' %}">Asset Management</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                        </li> 
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'assets:asset_list' %}">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'assets:add_asset' %}">Add Asset</a>
-                        </li>
-                        {% comment %} <li class="nav-item">
-                            <a class="nav-link" href="{% url 'assets:mark_damaged' asset.id %}">Mark Damaged</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'assets:dispose_asset' asset.id %}">Dispose Asset</a>
-                        </li> {% endcomment %}
-                    </ul>
-                </div>
+{% block title %}Asset Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'asset_list' %}active{% endif %}" 
+                           href="{% url 'assets:asset_list' %}">
+                            <i class="fas fa-list"></i> Assets
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'add_asset' %}active{% endif %}" 
+                           href="{% url 'assets:add_asset' %}">
+                            <i class="fas fa-plus"></i> Add Asset
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'maintenance_schedule' %}active{% endif %}" 
+                           href="{% url 'assets:maintenance_schedule' %}">
+                            <i class="fas fa-tools"></i> Maintenance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'asset_transfer' %}active{% endif %}" 
+                           href="{% url 'assets:asset_transfer' %}">
+                            <i class="fas fa-exchange-alt"></i> Transfers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'warranty_list' %}active{% endif %}" 
+                           href="{% url 'assets:warranty_list' %}">
+                            <i class="fas fa-shield-alt"></i> Warranties
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'insurance_list' %}active{% endif %}" 
+                           href="{% url 'assets:insurance_list' %}">
+                            <i class="fas fa-file-contract"></i> Insurance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'document_list' %}active{% endif %}" 
+                           href="{% url 'assets:document_list' %}">
+                            <i class="fas fa-file-alt"></i> Documents
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'generate_pdf_report' %}active{% endif %}" 
+                           href="{% url 'assets:generate_pdf_report' %}">
+                            <i class="fas fa-file-pdf"></i> PDF Report
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'generate_excel_report' %}active{% endif %}" 
+                           href="{% url 'assets:generate_excel_report' %}">
+                            <i class="fas fa-file-excel"></i> Excel Report
+                        </a>
+                    </li>
+                </ul>
             </div>
         </nav>
-    </header>
 
-    <main role="main" class="container mt-4">
-        {% block content %}
-        <!-- This is where child templates will insert their specific content -->
-        {% endblock %}
-    </main>
+        <!-- Main content -->
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
 
-    <footer class="footer mt-auto py-3 bg-light">
-        <div class="container">
-            <span class="text-muted">© 2025 Your Company Name</span>
-        </div>
-    </footer>
+            {% block asset_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
 
-    <script src=""></script> <!-- Bootstrap JS -->
-</body>
-</html>
+{% block extra_js %}
+<script src="{% static 'assets/js/main.js' %}"></script>
+{% endblock %}

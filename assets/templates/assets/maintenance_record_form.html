@@ -1,0 +1,261 @@
+{% extends "assets/base.html" %}
+{% load static %}
+
+{% block asset_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        {% if form.instance.pk %}
+            Edit Maintenance Record
+        {% else %}
+            Record Maintenance
+        {% endif %}
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Asset Information -->
+                    <div class="form-group">
+                        <label for="{{ form.asset.id_for_label }}">Asset</label>
+                        {{ form.asset }}
+                        {% if form.asset.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.asset.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Maintenance Type -->
+                    <div class="form-group">
+                        <label for="{{ form.maintenance_type.id_for_label }}">Maintenance Type</label>
+                        {{ form.maintenance_type }}
+                        {% if form.maintenance_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.maintenance_type.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Start Date -->
+                    <div class="form-group">
+                        <label for="{{ form.start_date.id_for_label }}">Start Date</label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.start_date.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- End Date -->
+                    <div class="form-group">
+                        <label for="{{ form.end_date.id_for_label }}">End Date</label>
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.end_date.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Performed By -->
+                    <div class="form-group">
+                        <label for="{{ form.performed_by.id_for_label }}">Performed By</label>
+                        {{ form.performed_by }}
+                        {% if form.performed_by.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.performed_by.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Cost -->
+                    <div class="form-group">
+                        <label for="{{ form.cost.id_for_label }}">Cost</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">$</span>
+                            </div>
+                            {{ form.cost }}
+                        </div>
+                        {% if form.cost.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.cost.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Status -->
+                    <div class="form-group">
+                        <label for="{{ form.status.id_for_label }}">Status</label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.status.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="{{ form.description.id_for_label }}">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.description.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            Detailed description of the maintenance work performed
+                        </small>
+                    </div>
+
+                    <!-- Parts Used -->
+                    <div class="form-group">
+                        <label for="{{ form.parts_used.id_for_label }}">Parts Used</label>
+                        {{ form.parts_used }}
+                        {% if form.parts_used.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.parts_used.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            List of parts replaced or used during maintenance
+                        </small>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="form-group">
+                        <label for="{{ form.recommendations.id_for_label }}">Recommendations</label>
+                        {{ form.recommendations }}
+                        {% if form.recommendations.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.recommendations.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            Any recommendations for future maintenance or improvements
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}
+                                Update Record
+                            {% else %}
+                                Save Record
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'assets:maintenance_schedule' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Asset Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Asset Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Name</dt>
+                    <dd class="col-sm-8">{{ asset.name }}</dd>
+
+                    <dt class="col-sm-4">Category</dt>
+                    <dd class="col-sm-8">{{ asset.category }}</dd>
+
+                    <dt class="col-sm-4">Department</dt>
+                    <dd class="col-sm-8">{{ asset.department }}</dd>
+
+                    <dt class="col-sm-4">Last Maintenance</dt>
+                    <dd class="col-sm-8">
+                        {% if asset.last_maintenance_date %}
+                            {{ asset.last_maintenance_date|date:"M d, Y" }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Next Due</dt>
+                    <dd class="col-sm-8">
+                        {% if asset.next_maintenance_date %}
+                            {{ asset.next_maintenance_date|date:"M d, Y" }}
+                        {% else %}
+                            Not scheduled
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Help Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Help Information</h5>
+            </div>
+            <div class="card-body">
+                <h6>Maintenance Status</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Planned:</strong> Maintenance is scheduled</li>
+                    <li><strong>In Progress:</strong> Maintenance is currently being performed</li>
+                    <li><strong>Completed:</strong> Maintenance has been finished</li>
+                    <li><strong>Cancelled:</strong> Maintenance was cancelled</li>
+                </ul>
+
+                <h6>Tips</h6>
+                <ul>
+                    <li>Record maintenance as soon as it's completed</li>
+                    <li>Include all parts used for inventory tracking</li>
+                    <li>Add detailed descriptions for future reference</li>
+                    <li>Note any issues or recommendations</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    $(document).ready(function() {
+        // Initialize date pickers
+        $('#{{ form.start_date.id_for_label }}').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true
+        });
+
+        $('#{{ form.end_date.id_for_label }}').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true
+        });
+
+        // Form validation
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var forms = document.getElementsByClassName('needs-validation');
+                var validation = Array.prototype.filter.call(forms, function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    });
+</script>
+{% endblock %} 

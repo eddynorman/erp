@@ -1,0 +1,201 @@
+{% extends "assets/base.html" %}
+{% load static %}
+
+{% block asset_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        {% if form.instance.pk %}
+            Edit Maintenance Schedule
+        {% else %}
+            Schedule Maintenance
+        {% endif %}
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Asset Selection -->
+                    <div class="form-group">
+                        <label for="{{ form.asset.id_for_label }}">Asset</label>
+                        {{ form.asset }}
+                        {% if form.asset.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.asset.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Maintenance Type -->
+                    <div class="form-group">
+                        <label for="{{ form.maintenance_type.id_for_label }}">Maintenance Type</label>
+                        {{ form.maintenance_type }}
+                        {% if form.maintenance_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.maintenance_type.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Frequency -->
+                    <div class="form-group">
+                        <label for="{{ form.frequency.id_for_label }}">Frequency (days)</label>
+                        {{ form.frequency }}
+                        {% if form.frequency.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.frequency.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            How often this maintenance should be performed (in days)
+                        </small>
+                    </div>
+
+                    <!-- Next Due Date -->
+                    <div class="form-group">
+                        <label for="{{ form.next_due.id_for_label }}">Next Due Date</label>
+                        {{ form.next_due }}
+                        {% if form.next_due.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.next_due.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="{{ form.description.id_for_label }}">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.description.errors }}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            Detailed description of the maintenance tasks to be performed
+                        </small>
+                    </div>
+
+                    <!-- Estimated Cost -->
+                    <div class="form-group">
+                        <label for="{{ form.estimated_cost.id_for_label }}">Estimated Cost</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">$</span>
+                            </div>
+                            {{ form.estimated_cost }}
+                        </div>
+                        {% if form.estimated_cost.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.estimated_cost.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Priority -->
+                    <div class="form-group">
+                        <label for="{{ form.priority.id_for_label }}">Priority</label>
+                        {{ form.priority }}
+                        {% if form.priority.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.priority.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="form-group">
+                        <label for="{{ form.notes.id_for_label }}">Notes</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.notes.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}
+                                Update Schedule
+                            {% else %}
+                                Create Schedule
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'assets:maintenance_schedule' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Help Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Help Information</h5>
+            </div>
+            <div class="card-body">
+                <h6>Maintenance Types</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Preventive:</strong> Regular maintenance to prevent issues</li>
+                    <li><strong>Corrective:</strong> Fix existing problems</li>
+                    <li><strong>Predictive:</strong> Based on condition monitoring</li>
+                    <li><strong>Condition-based:</strong> Based on asset condition</li>
+                </ul>
+
+                <h6>Priority Levels</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Low:</strong> Can be scheduled at convenience</li>
+                    <li><strong>Medium:</strong> Should be completed within a week</li>
+                    <li><strong>High:</strong> Should be completed within 48 hours</li>
+                    <li><strong>Critical:</strong> Should be completed immediately</li>
+                </ul>
+
+                <h6>Tips</h6>
+                <ul>
+                    <li>Set realistic frequencies based on manufacturer recommendations</li>
+                    <li>Consider asset usage patterns when scheduling</li>
+                    <li>Include detailed descriptions for better tracking</li>
+                    <li>Update estimated costs regularly</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    $(document).ready(function() {
+        // Initialize date picker
+        $('#{{ form.next_due.id_for_label }}').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true
+        });
+
+        // Form validation
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var forms = document.getElementsByClassName('needs-validation');
+                var validation = Array.prototype.filter.call(forms, function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    });
+</script>
+{% endblock %} 

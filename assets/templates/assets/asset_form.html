@@ -1,0 +1,270 @@
+{% extends "assets/base.html" %}
+{% load static %}
+
+{% block asset_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% if form.instance.pk %}Edit Asset{% else %}Add New Asset{% endif %}</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Basic Information -->
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Basic Information</h5>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.name.id_for_label }}">Name *</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.name.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.asset_tag.id_for_label }}">Asset Tag *</label>
+                                {{ form.asset_tag }}
+                                {% if form.asset_tag.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.asset_tag.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.category.id_for_label }}">Category *</label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.category.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.department.id_for_label }}">Department *</label>
+                                {{ form.department }}
+                                {% if form.department.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.department.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Financial Information -->
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Financial Information</h5>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.purchase_cost.id_for_label }}">Purchase Cost *</label>
+                                {{ form.purchase_cost }}
+                                {% if form.purchase_cost.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.purchase_cost.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.quantity.id_for_label }}">Quantity *</label>
+                                {{ form.quantity }}
+                                {% if form.quantity.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.quantity.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.initial_purchase_date.id_for_label }}">Initial Purchase Date *</label>
+                                {{ form.initial_purchase_date }}
+                                {% if form.initial_purchase_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.initial_purchase_date.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.initial_supplier.id_for_label }}">Initial Supplier *</label>
+                                {{ form.initial_supplier }}
+                                {% if form.initial_supplier.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.initial_supplier.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Asset Details -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5 class="mb-3">Asset Details</h5>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.description.id_for_label }}">Description</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.description.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.condition.id_for_label }}">Condition</label>
+                                        {{ form.condition }}
+                                        {% if form.condition.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.condition.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.expected_lifespan.id_for_label }}">Expected Lifespan (years)</label>
+                                        {{ form.expected_lifespan }}
+                                        {% if form.expected_lifespan.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.expected_lifespan.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.depreciation_rate.id_for_label }}">Depreciation Rate (%)</label>
+                                        {{ form.depreciation_rate }}
+                                        {% if form.depreciation_rate.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.depreciation_rate.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.notes.id_for_label }}">Notes</label>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.notes.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}Update Asset{% else %}Create Asset{% endif %}
+                        </button>
+                        <a href="{% url 'assets:asset_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Information -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Help Information</h5>
+            </div>
+            <div class="card-body">
+                <h6>Required Fields</h6>
+                <p>Fields marked with * are required.</p>
+
+                <h6>Asset Tag</h6>
+                <p>Unique identifier for the asset. Must be alphanumeric and contain no spaces.</p>
+
+                <h6>Depreciation Rate</h6>
+                <p>Annual percentage rate at which the asset depreciates. Used to calculate current value.</p>
+
+                <h6>Expected Lifespan</h6>
+                <p>Estimated number of years the asset will be in service.</p>
+
+                <h6>Condition</h6>
+                <p>Current physical condition of the asset. This will be updated during maintenance and repairs.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    $(document).ready(function() {
+        // Initialize date picker
+        $('.datepicker').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true
+        });
+
+        // Initialize select2 for dropdowns
+        $('.select2').select2({
+            theme: 'bootstrap4'
+        });
+
+        // Form validation
+        $('form').on('submit', function(e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            $(this).addClass('was-validated');
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,279 @@
+{% extends "assets/base.html" %}
+{% load static %}
+
+{% block asset_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Maintenance Schedule</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'assets:add_maintenance_schedule' %}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-plus"></i> Schedule Maintenance
+        </a>
+    </div>
+</div>
+
+<!-- Maintenance Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Due This Week</h5>
+                <h2 class="card-text">{{ due_this_week_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">Due Next Week</h5>
+                <h2 class="card-text">{{ due_next_week_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Completed This Month</h5>
+                <h2 class="card-text">{{ completed_this_month_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Total Scheduled</h5>
+                <h2 class="card-text">{{ total_scheduled_count }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Maintenance Schedule Table -->
+<div class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="upcoming-tab" data-toggle="tab" href="#upcoming" role="tab">Upcoming</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="overdue-tab" data-toggle="tab" href="#overdue" role="tab">Overdue</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="completed-tab" data-toggle="tab" href="#completed" role="tab">Completed</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content">
+            <!-- Upcoming Maintenance -->
+            <div class="tab-pane fade show active" id="upcoming" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Asset</th>
+                                <th>Type</th>
+                                <th>Due Date</th>
+                                <th>Frequency</th>
+                                <th>Last Performed</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for schedule in upcoming_maintenance %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'assets:asset_detail' schedule.asset.id %}">
+                                        {{ schedule.asset.name }}
+                                    </a>
+                                </td>
+                                <td>{{ schedule.get_maintenance_type_display }}</td>
+                                <td>{{ schedule.next_due|date:"M d, Y" }}</td>
+                                <td>{{ schedule.frequency }} days</td>
+                                <td>
+                                    {% if schedule.last_performed %}
+                                        {{ schedule.last_performed|date:"M d, Y" }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ schedule.get_status_color }}">
+                                        {{ schedule.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{% url 'assets:add_maintenance_record' schedule.asset.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-tools"></i>
+                                        </a>
+                                        <a href="{% url 'assets:edit_maintenance_schedule' schedule.id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">No upcoming maintenance scheduled.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Overdue Maintenance -->
+            <div class="tab-pane fade" id="overdue" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Asset</th>
+                                <th>Type</th>
+                                <th>Due Date</th>
+                                <th>Days Overdue</th>
+                                <th>Last Performed</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for schedule in overdue_maintenance %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'assets:asset_detail' schedule.asset.id %}">
+                                        {{ schedule.asset.name }}
+                                    </a>
+                                </td>
+                                <td>{{ schedule.get_maintenance_type_display }}</td>
+                                <td>{{ schedule.next_due|date:"M d, Y" }}</td>
+                                <td>{{ schedule.days_overdue }}</td>
+                                <td>
+                                    {% if schedule.last_performed %}
+                                        {{ schedule.last_performed|date:"M d, Y" }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-danger">Overdue</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{% url 'assets:add_maintenance_record' schedule.asset.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-tools"></i>
+                                        </a>
+                                        <a href="{% url 'assets:edit_maintenance_schedule' schedule.id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">No overdue maintenance.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Completed Maintenance -->
+            <div class="tab-pane fade" id="completed" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Asset</th>
+                                <th>Type</th>
+                                <th>Completed Date</th>
+                                <th>Performed By</th>
+                                <th>Cost</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in completed_maintenance %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'assets:asset_detail' record.asset.id %}">
+                                        {{ record.asset.name }}
+                                    </a>
+                                </td>
+                                <td>{{ record.get_maintenance_type_display }}</td>
+                                <td>{{ record.end_date|date:"M d, Y" }}</td>
+                                <td>{{ record.performed_by }}</td>
+                                <td>${{ record.cost|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge badge-success">Completed</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'assets:edit_maintenance_record' record.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">No completed maintenance records.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Maintenance Calendar -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Maintenance Calendar</h5>
+    </div>
+    <div class="card-body">
+        <div id="maintenance-calendar"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'assets/js/fullcalendar.min.js' %}"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize calendar
+        $('#maintenance-calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+            },
+            events: [
+                {% for schedule in upcoming_maintenance %}
+                {
+                    title: '{{ schedule.asset.name }} - {{ schedule.get_maintenance_type_display }}',
+                    start: '{{ schedule.next_due|date:"Y-m-d" }}',
+                    url: '{% url "assets:asset_detail" schedule.asset.id %}',
+                    color: '{{ schedule.get_status_color }}'
+                },
+                {% endfor %}
+            ],
+            eventClick: function(event) {
+                if (event.url) {
+                    window.location.href = event.url;
+                    return false;
+                }
+            }
+        });
+
+        // Handle tab switching
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $('#maintenance-calendar').fullCalendar('render');
+        });
+    });
+</script>
+{% endblock %} 

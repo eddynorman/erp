@@ -7,6 +7,8 @@ from django.db import transaction
 from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Sum, F, Q
 
 from .models import *
 from .forms import *
@@ -16,41 +18,310 @@ from company.models import Branch, Department, Category
 class HomeView(View):
     def get(self, request):
         return render(request, 'inventory/index.html')
-class StoreListView(ListView):
-    model = Store
-    template_name = 'store_list.html'
-    context_object_name = 'stores'
 
-class StoreCreateView(CreateView):
-    model = Store
-    form_class = StoreForm
-    template_name = 'inventory/store_form.html'
-    success_url = reverse_lazy('inventory/store_list')
-
-class StoreUpdateView(UpdateView):
-    model = Store
-    form_class = StoreForm
-    template_name = 'store_form.html'
-    success_url = reverse_lazy('inventory/store_list')
-class StoreDetailView(DetailView):
-    model = Store
-    context_object_name = 'store'
-    template_name = 'inventory/store_detail.html'
+@login_required
+def store_list(request):
+    """View for listing all stores with search and filter functionality."""
+    stores = Store.objects.all()
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['store_items'] = StoreItem.objects.filter(store=self.object)
-        return context
-
-class SalePointDetailView(DetailView):
-    model = SalePoint
-    template_name = 'inventory/salepoint_detail.html'
-    context_object_name = "salepoint"
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        stores = stores.filter(
+            Q(name__icontains=search_query) |
+            Q(address__icontains=search_query) |
+            Q(contact_person__name__icontains=search_query)
+        )
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['salepoint_items'] = SalePointItem.objects.filter(sale_point=self.object)
-        return context
+    # Filter by status
+    status = request.GET.get('status', '')
+    if status:
+        stores = stores.filter(status=status)
+    
+    # Pagination
+    paginator = Paginator(stores, 10)
+    page_number = request.GET.get('page')
+    stores = paginator.get_page(page_number)
+    
+    context = {
+        'stores': stores,
+        'status_choices': Store.STATUS_CHOICES,
+    }
+    return render(request, 'inventory/store_list.html', context)
+
+@login_required
+def store_create(request):
+    """View for creating a new store."""
+    if request.method == 'POST':
+        form = StoreForm(request.POST)
+        if form.is_valid():
+            store = form.save()
+            messages.success(request, f'Store "{store.name}" created successfully.')
+            return redirect('store_detail', pk=store.pk)
+    else:
+        form = StoreForm()
+    
+    return render(request, 'inventory/store_form.html', {'form': form, 'action': 'Create'})
+
+@login_required
+def store_edit(request, pk):
+    """View for editing an existing store."""
+    store = get_object_or_404(Store, pk=pk)
+    
+    if request.method == 'POST':
+        form = StoreForm(request.POST, instance=store)
+        if form.is_valid():
+            store = form.save()
+            messages.success(request, f'Store "{store.name}" updated successfully.')
+            return redirect('store_detail', pk=store.pk)
+    else:
+        form = StoreForm(instance=store)
+    
+    return render(request, 'inventory/store_form.html', {
+        'form': form,
+        'store': store,
+        'action': 'Edit'
+    })
+
+@login_required
+def store_detail(request, pk):
+    """View for displaying store details and inventory."""
+    store = get_object_or_404(Store, pk=pk)
+    items = store.storeitem_set.select_related('item').all()
+    
+    # Calculate total value
+    total_value = sum(item.quantity * item.item.buying_price for item in items)
+    
+    context = {
+        'store': store,
+        'items': items,
+        'total_value': total_value,
+    }
+    return render(request, 'inventory/store_detail.html', context)
+
+@login_required
+def item_list(request):
+    """View for listing all items with search and filter functionality."""
+    items = Item.objects.all()
+    
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        items = items.filter(
+            Q(name__icontains=search_query) |
+            Q(bar_code__icontains=search_query) |
+            Q(category__name__icontains=search_query)
+        )
+    
+    # Filter by status
+    status = request.GET.get('status', '')
+    if status:
+        items = items.filter(status=status)
+    
+    # Filter by department
+    department = request.GET.get('department', '')
+    if department:
+        items = items.filter(department_id=department)
+    
+    # Filter by category
+    category = request.GET.get('category', '')
+    if category:
+        items = items.filter(category_id=category)
+    
+    # Filter by stock level
+    stock_level = request.GET.get('stock_level', '')
+    if stock_level == 'low':
+        items = items.filter(store_stock__lte=F('minimum_stock'))
+    elif stock_level == 'out':
+        items = items.filter(store_stock=0)
+    
+    # Pagination
+    paginator = Paginator(items, 10)
+    page_number = request.GET.get('page')
+    items = paginator.get_page(page_number)
+    
+    context = {
+        'items': items,
+        'status_choices': Item.STATUS_CHOICES,
+    }
+    return render(request, 'inventory/item_list.html', context)
+
+@login_required
+def item_create(request):
+    """View for creating a new item."""
+    if request.method == 'POST':
+        form = ItemForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                item = form.save()
+                messages.success(request, f'Item "{item.name}" created successfully.')
+                return redirect('item_detail', pk=item.pk)
+    else:
+        form = ItemForm()
+    
+    return render(request, 'inventory/item_form.html', {'form': form, 'action': 'Create'})
+
+@login_required
+def item_edit(request, pk):
+    """View for editing an existing item."""
+    item = get_object_or_404(Item, pk=pk)
+    
+    if request.method == 'POST':
+        form = ItemForm(request.POST, instance=item)
+        if form.is_valid():
+            item = form.save()
+            messages.success(request, f'Item "{item.name}" updated successfully.')
+            return redirect('item_detail', pk=item.pk)
+    else:
+        form = ItemForm(instance=item)
+    
+    return render(request, 'inventory/item_form.html', {
+        'form': form,
+        'item': item,
+        'action': 'Edit'
+    })
+
+@login_required
+def item_detail(request, pk):
+    """View for displaying item details and stock information."""
+    item = get_object_or_404(Item, pk=pk)
+    
+    # Get stock information
+    store_items = item.storeitem_set.select_related('store').all()
+    sale_point_items = item.salepointitem_set.select_related('sale_point').all()
+    
+    # Get recent transactions
+    recent_adjustments = item.adjustment_set.order_by('-date')[:5]
+    recent_issues = item.issue_set.order_by('-date')[:5]
+    recent_receivings = item.receiving_set.order_by('-date')[:5]
+    
+    context = {
+        'item': item,
+        'store_items': store_items,
+        'sale_point_items': sale_point_items,
+        'recent_adjustments': recent_adjustments,
+        'recent_issues': recent_issues,
+        'recent_receivings': recent_receivings,
+    }
+    return render(request, 'inventory/item_detail.html', context)
+
+@login_required
+def adjustment_create(request):
+    """View for creating a new inventory adjustment."""
+    if request.method == 'POST':
+        form = AdjustmentForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                adjustment = form.save(commit=False)
+                adjustment.user_responsible = request.user
+                adjustment.save()
+                
+                # Update stock
+                item = adjustment.item
+                if adjustment.quantity > 0:
+                    item.store_stock += adjustment.quantity
+                else:
+                    item.store_stock += adjustment.quantity
+                item.save()
+                
+                messages.success(request, 'Inventory adjustment created successfully.')
+                return redirect('item_detail', pk=item.pk)
+    else:
+        form = AdjustmentForm()
+    
+    return render(request, 'inventory/adjustment_form.html', {'form': form})
+
+@login_required
+def requisition_create(request):
+    """View for creating a new requisition."""
+    if request.method == 'POST':
+        form = RequisitionForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                requisition = form.save(commit=False)
+                requisition.user_responsible = request.user
+                requisition.save()
+                
+                messages.success(request, 'Requisition created successfully.')
+                return redirect('requisition_detail', pk=requisition.pk)
+    else:
+        form = RequisitionForm()
+    
+    return render(request, 'inventory/requisition_form.html', {'form': form})
+
+@login_required
+def receiving_create(request):
+    """View for creating a new receiving record."""
+    if request.method == 'POST':
+        form = ReceivingForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                receiving = form.save(commit=False)
+                receiving.user_responsible = request.user
+                receiving.save()
+                
+                messages.success(request, 'Receiving record created successfully.')
+                return redirect('receiving_detail', pk=receiving.pk)
+    else:
+        form = ReceivingForm()
+    
+    return render(request, 'inventory/receiving_form.html', {'form': form})
+
+@login_required
+def issue_create(request):
+    """View for creating a new issue record."""
+    if request.method == 'POST':
+        form = IssueForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                issue = form.save(commit=False)
+                issue.user_responsible = request.user
+                issue.save()
+                
+                # Update stock
+                item = issue.item
+                if issue.store:
+                    item.store_stock -= issue.quantity
+                else:
+                    item.shop_stock -= issue.quantity
+                item.save()
+                
+                messages.success(request, 'Issue record created successfully.')
+                return redirect('issue_detail', pk=issue.pk)
+    else:
+        form = IssueForm()
+    
+    return render(request, 'inventory/issue_form.html', {'form': form})
+
+@login_required
+def get_item_stock(request, item_id):
+    """API endpoint for getting item stock information."""
+    try:
+        item = Item.objects.get(pk=item_id)
+        data = {
+            'store_stock': item.store_stock,
+            'shop_stock': item.shop_stock,
+            'total_stock': item.total_stock(),
+            'minimum_stock': item.minimum_stock,
+            'optimum_stock': item.optimum_stock,
+            'needs_reorder': item.needs_reorder(),
+        }
+        return JsonResponse(data)
+    except Item.DoesNotExist:
+        return JsonResponse({'error': 'Item not found'}, status=404)
+
+@login_required
+def get_low_stock_items(request):
+    """API endpoint for getting items that need reordering."""
+    items = Item.objects.filter(store_stock__lte=F('minimum_stock'))
+    data = [{
+        'id': item.id,
+        'name': item.name,
+        'current_stock': item.store_stock,
+        'minimum_stock': item.minimum_stock,
+        'optimum_stock': item.optimum_stock,
+    } for item in items]
+    return JsonResponse({'items': data})
 
 class StoreDeleteView(DeleteView):
     model = Store
@@ -107,16 +378,6 @@ class SupplierDeleteView(DeleteView):
     template_name = 'inventory/gen_confirm_delete.html'
     success_url = reverse_lazy('inventory:supplier_list')
     
-class ItemCreateView(CreateView):
-    model = Item
-    form_class = ItemForm
-    template_name = 'inventory/store_form.html'
-    success_url = reverse_lazy('inventory:item_list')
-
-class ItemListView(ListView):
-    model = Item
-    template_name = 'inventory/item_list.html'
-    context_object_name = 'items'
 class ItemUpdateView(UpdateView):
     model = Item
     form_class = ItemForm
@@ -223,30 +484,6 @@ class ItemUnitDeleteView(DeleteView):
     template_name = 'inventory/gen_confirm_delete.html'
     success_url = reverse_lazy('inventory:unit_list')
 
-class AdjustmentCreateView(CreateView):
-    model = Adjustment
-    form_class = AdjustmentForm
-    template_name = 'inventory/gen_form.html'
-    success_url = reverse_lazy('inventory:adjustment_list')
-    
-    def get_initial(self):
-        initial = super().get_initial()
-        item_id = self.kwargs.get('item_id')
-        store_id = self.request.GET.get('store_id')
-        sale_point_id = self.request.GET.get('sale_point_id')
-        
-        if item_id:
-            initial['item'] = item_id
-            
-        if store_id:
-            initial['store'] = store_id
-            initial['in_store'] = True
-            
-        if sale_point_id:
-            initial['sale_point'] = sale_point_id
-            initial['in_store'] = False
-            
-        return initial
 class AdjustmentListView(ListView):
     model = Adjustment
     template_name = 'inventory/adjustment_list.html'
@@ -268,36 +505,6 @@ class RequisitionDetailView(DetailView):
     #     context["total_cost"] =sum
     #     return context
     
-
-class RequisitionCreateView(CreateView):
-    model = Requisition
-    form_class = RequisitionForm
-    template_name = 'inventory/requisition_form.html'
-    success_url = reverse_lazy('inventory:requisition_list')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.request.POST:
-            context['items_formset'] = RequisitionItemFormSet(self.request.POST)
-        else:
-            context['items_formset'] = RequisitionItemFormSet()
-        return context
-
-    def form_valid(self, form):
-        context = self.get_context_data()
-        items_formset = context['items_formset']
-        
-        with transaction.atomic():
-            self.object = form.save()
-            
-            if items_formset.is_valid():
-                items_formset.instance = self.object
-                items_formset.save()
-            else:
-                return self.form_invalid(form)
-                
-        messages.success(self.request, 'Requisition created successfully.')
-        return super().form_valid(form)
 
 class RequisitionUpdateView(UpdateView):
     model = Requisition
@@ -383,35 +590,6 @@ def get_unit_price(request):
     except ItemUnit.DoesNotExist:
         return JsonResponse({'error': 'Unit not found'}, status=404)
     
-class ReceivingCreateView(CreateView):
-    model = Receiving
-    form_class = ReceivingForm
-    template_name = "inventory/receiving_form.html"
-    success_url = reverse_lazy("inventory:receiving_list")
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.request.POST:
-            context["items_formset"] = ReceivedItemFormSet(self.request.POST)
-        else:
-            context["items_formset"] = ReceivedItemFormSet()
-        return context
-    
-    def form_valid(self, form):
-        context = self.get_context_data()
-        items_formset = context['items_formset']
-        
-        with transaction.atomic():
-           
-            if items_formset.is_valid() and form.is_valid():
-                self.object = form.save()
-                items_formset.instance = self.object
-                items_formset.save()
-            else:
-                return self.form_invalid(form)   
-        messages.success(self.request,"Receiving Added Successfully!") 
-        return super().form_valid(form)
-
 class ReceivingUpdateView(UpdateView):
     model = Receiving
     form_class = ReceivingForm
@@ -719,36 +897,6 @@ class IssueDetailView(DetailView):
     model = Issue
     template_name = 'inventory/issue_detail.html'
     context_object_name = 'issue'
-
-class IssueCreateView(CreateView):
-    model = Issue
-    form_class = IssueForm
-    template_name = 'inventory/issue_form.html'
-    success_url = reverse_lazy('inventory:issue_list')
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.request.POST:
-            context['items_formset'] = IssueItemFormSet(self.request.POST)
-        else:
-            context['items_formset'] = IssueItemFormSet()
-        return context
-    
-    def form_valid(self, form):
-        context = self.get_context_data()
-        items_formset = context['items_formset']
-        
-        with transaction.atomic():
-            self.object = form.save()
-            
-            if items_formset.is_valid():
-                items_formset.instance = self.object
-                items_formset.save()
-            else:
-                return self.form_invalid(form)
-                
-        messages.success(self.request, 'Issue request created successfully.')
-        return super().form_valid(form)
 
 class IssueUpdateView(UpdateView):
     model = Issue

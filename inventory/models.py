@@ -21,105 +21,269 @@ These models support inventory operations including stock tracking, transfers,
 requisitions, and adjustments across multiple locations.
 """
 
-from django.db import models,transaction
-from django.db.models import F
-from company.models import Department, Category, Employee, Branch
+from django.db import models, transaction
+from django.db.models import F, Sum
+from django.core.validators import MinValueValidator
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from company.models import Department, Category, Employee, Branch
+from decimal import Decimal
 
 # Store for storing items not in the shop/production areas
 class Store(models.Model):
-    name = models.CharField(max_length=200)
+    """Represents a storage location for inventory items."""
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('maintenance', 'Under Maintenance'),
+    ]
+
+    name = models.CharField(max_length=200, unique=True)
     address = models.CharField(max_length=200)
-    branch = models.ForeignKey(Branch,on_delete=models.CASCADE)
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
     contact_person = models.ForeignKey(Employee, on_delete=models.CASCADE)
     contact_number = models.CharField(max_length=20)
-    status = models.CharField(max_length=20, default="Active")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Store'
+        verbose_name_plural = 'Stores'
 
     def __str__(self):
         return self.name
     
+    def get_total_items(self):
+        """Returns the total number of unique items in the store."""
+        return self.storeitem_set.count()
+    
+    def get_total_value(self):
+        """Returns the total value of all items in the store."""
+        return sum(
+            item.quantity * item.item.buying_price 
+            for item in self.storeitem_set.all()
+        )
+    
+    @transaction.atomic
     def update_stock(self, qty, item):
-        print(f"Updating stock for {item.name} in {self.name} by {qty}")
-        if self.storeitem_set.filter(item=item):
-            self.storeitem_set.filter(item=item).update(quantity=F('quantity') + qty)
-            print(f"Updated stock for {item.name} in {self.name} by {qty}")
-            item.calculate_store_stock()
-            print(f"called calculate {item.name} in {self.name} by {qty}")
-        else:
-            StoreItem.objects.create(store=self, item=item, quantity=qty)
-        self.save()
+        """Updates the stock quantity for an item in the store."""
+        if self.status != 'active':
+            raise ValidationError("Cannot update stock in an inactive store")
+            
+        store_item, created = StoreItem.objects.get_or_create(
+            store=self,
+            item=item,
+            defaults={'quantity': 0}
+        )
+        
+        store_item.quantity = F('quantity') + qty
+        store_item.save()
+        store_item.refresh_from_db()
+        
+        item.calculate_store_stock()
+        
+        return store_item
 
 class SalePoint(models.Model):
-    name = models.CharField(max_length=200)
+    """Represents a retail or sales location."""
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('maintenance', 'Under Maintenance'),
+    ]
+
+    name = models.CharField(max_length=200, unique=True)
     address = models.CharField(max_length=200)
-    branch = models.ForeignKey(Branch,on_delete=models.CASCADE)
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
     contact_person = models.ForeignKey(Employee, on_delete=models.CASCADE)
     contact_number = models.CharField(max_length=20)
-    status = models.CharField(max_length=20, default="Active")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Sale Point'
+        verbose_name_plural = 'Sale Points'
 
     def __str__(self):
         return self.name
     
+    def get_total_items(self):
+        """Returns the total number of unique items at the sale point."""
+        return self.salepointitem_set.count()
+    
+    def get_total_value(self):
+        """Returns the total value of all items at the sale point."""
+        return sum(
+            item.quantity * item.item.selling_price 
+            for item in self.salepointitem_set.all()
+        )
+    
+    @transaction.atomic
     def update_stock(self, qty, item):
-        print(f"Updating stock for {item.name} in {self.name} by {qty}")
-        if self.salepointitem_set.filter(item=item):
-            self.salepointitem_set.filter(item=item).update(quantity=F('quantity') + qty)
-            print(f"Updated stock for {item.name} in {self.name} by {qty}")
-            item.calculate_shop_stock()
-            print(f"called calculate {item.name} in {self.name} by {qty}")
-        else:
-            SalePointItem.objects.create(sale_point=self, item=item, quantity=qty)
-        self.save()
+        """Updates the stock quantity for an item at the sale point."""
+        if self.status != 'active':
+            raise ValidationError("Cannot update stock in an inactive sale point")
+            
+        sale_point_item, created = SalePointItem.objects.get_or_create(
+            sale_point=self,
+            item=item,
+            defaults={'quantity': 0}
+        )
+        
+        sale_point_item.quantity = F('quantity') + qty
+        sale_point_item.save()
+        sale_point_item.refresh_from_db()
+        
+        item.calculate_shop_stock()
+        
+        return sale_point_item
+
 class Supplier(models.Model):
-    name = models.CharField(max_length=200)
+    """Represents a vendor who supplies inventory items."""
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('blacklisted', 'Blacklisted'),
+    ]
+
+    name = models.CharField(max_length=200, unique=True)
     address = models.CharField(max_length=200)
     contact_person = models.CharField(max_length=200)
     contact_number = models.CharField(max_length=20)
-    status = models.CharField(max_length=20, default="Active")
+    email = models.EmailField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True)
+    payment_terms = models.CharField(max_length=100, blank=True)
+    tax_number = models.CharField(max_length=50, blank=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Supplier'
+        verbose_name_plural = 'Suppliers'
 
     def __str__(self):
         return self.name
+    
+    def get_total_purchases(self):
+        """Returns the total value of purchases from this supplier."""
+        return self.receiving_set.aggregate(
+            total=Sum('receiveditem__total_cost')
+        )['total'] or Decimal('0.00')
 
 class Item(models.Model):
+    """Core inventory item with stock tracking across locations."""
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('discontinued', 'Discontinued'),
+    ]
+
     name = models.CharField(max_length=200)
-    bar_code = models.CharField(max_length=20, null=True, blank=True)
+    bar_code = models.CharField(max_length=20, unique=True, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    initial_stock = models.IntegerField(default=0)
-    store_stock = models.IntegerField(default=0)
-    shop_stock = models.IntegerField(default=0)
-    status = models.CharField(max_length=20, default="Active")
-    buying_price = models.FloatField(default=0)
-    selling_price = models.FloatField(default=0)
+    initial_stock = models.PositiveIntegerField(default=0)
+    store_stock = models.PositiveIntegerField(default=0)
+    shop_stock = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    buying_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    selling_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     smallest_unit = models.CharField(max_length=20)   
     is_sellable = models.BooleanField(default=True)
     is_service = models.BooleanField(default=False)
-    minimum_stock = models.IntegerField(default=0)
-    optimum_stock = models.IntegerField(default=0)
+    minimum_stock = models.PositiveIntegerField(default=0)
+    optimum_stock = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True)
+    reorder_point = models.PositiveIntegerField(default=0)
+    lead_time_days = models.PositiveIntegerField(default=0)
+    location = models.CharField(max_length=100, blank=True)
+    weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    dimensions = models.CharField(max_length=50, blank=True)
+    manufacturer = models.CharField(max_length=200, blank=True)
+    model_number = models.CharField(max_length=100, blank=True)
+    serial_number = models.CharField(max_length=100, blank=True)
+    warranty_period = models.PositiveIntegerField(default=0)
+    expiry_date = models.DateField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Item'
+        verbose_name_plural = 'Items'
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['bar_code']),
+            models.Index(fields=['status']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.bar_code})" if self.bar_code else self.name
 
     def calculate_store_stock(self):
         """Calculate store stock based on StoreItem objects and adjust store stock."""
-        print("Calculating store stock...")
         self.store_stock = sum(store_item.quantity for store_item in self.storeitem_set.all())
-        self.save()
+        self.save(update_fields=['store_stock'])
     
     def calculate_shop_stock(self):
         """Calculate shop stock based on ShopItem objects and adjust shop stock."""
         self.shop_stock = sum(shop_item.quantity for shop_item in self.salepointitem_set.all())
-        self.save()
+        self.save(update_fields=['shop_stock'])
     
     def total_stock(self):
+        """Returns the total stock across all locations."""
         return self.store_stock + self.shop_stock
 
+    def needs_reorder(self):
+        """Checks if the item needs to be reordered based on minimum stock level."""
+        return self.total_stock() <= self.minimum_stock
+
+    def get_stock_value(self):
+        """Returns the total value of current stock."""
+        return self.total_stock() * self.buying_price
+
+    def get_margin(self):
+        """Calculates the profit margin percentage."""
+        if self.buying_price == 0:
+            return 0
+        return ((self.selling_price - self.buying_price) / self.buying_price) * 100
+
+    def clean(self):
+        """Validates the item data."""
+        if self.selling_price < self.buying_price:
+            raise ValidationError("Selling price cannot be less than buying price")
+        
+        if self.optimum_stock < self.minimum_stock:
+            raise ValidationError("Optimum stock cannot be less than minimum stock")
+        
+        if self.reorder_point > self.minimum_stock:
+            raise ValidationError("Reorder point cannot be greater than minimum stock")
+
     def save(self, *args, **kwargs):
-        if self.pk is None:
+        """Custom save method to handle initial stock and unit creation."""
+        if self.pk is None:  # New item
             self.store_stock = self.initial_stock
             self.shop_stock = 0
-            ItemUnit.objects.create(item=self, unit=self.smallest_unit, smallest_units=1, buying_price=self.buying_price, selling_price=self.selling_price)
+            ItemUnit.objects.create(
+                item=self,
+                unit=self.smallest_unit,
+                smallest_units=1,
+                buying_price=self.buying_price,
+                selling_price=self.selling_price
+            )
         super().save(*args, **kwargs)
-    
-    def __str__(self):
-        return f"{self.name}"
 
 class StoreItem(models.Model):
     store = models.ForeignKey(Store, on_delete=models.CASCADE)

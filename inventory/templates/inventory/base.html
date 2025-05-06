@@ -1,113 +1,116 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Inventory Management{% endblock %}</title>
-    <link href=" {% static "bootstrap5/css/bootstrap.min.css" %} " rel="stylesheet">
-    <script src="{% static "bootstrap5/js/bootstrap.bundle.min.js" %}"></script>
-    <link rel="icon" href="{% static "favicon.ico" %}">
-    <link href="{% static 'inventory/css/custom.css' %}" rel="stylesheet">
+{% extends 'base.html' %}
+{% load static %}
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        /* Make navbar overlap content on small screens */
-        .asteriskField {
-            color: red;
-        }
-        table tr td div label{
-            display:none;
-        }
-        @media (max-width: 768px) {
-            .navbar {
-                position: absolute;
-                width: 100%;
-                z-index: 1000;
-                background: rgba(0, 0, 0, 0.8); /* Semi-transparent */
-            }
-            
+{% block title %}Inventory Management{% endblock %}
 
-            /* Add padding to body to prevent text from hiding under navbar */
-            body {
-                padding-top: 56px; /* Adjust based on navbar height */
-            }
-        }
-    </style>
-    
-</head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container-fluid p-4">
-                <a class="navbar-brand" href="{% url 'inventory:home' %}">Inventory Management</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                        </li> 
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'inventory:store_list' %}">Stores</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'inventory:salepoint_list' %}">Sale Points</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'inventory:supplier_list' %}">Suppliers</a>
-                        </li> 
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'inventory:item_list' %}">Items</a>
-                        </li>
-                        <li>
-                            <a class="nav-link" href="{% url 'inventory:unit_list' %}">Item Units</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'inventory:adjustment_list' %}">Adjustments</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'inventory:itemkit_list' %}">Item Kits</a>
-                        </li> 
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'inventory:requisition_list' %}">Requisitions</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'inventory:receiving_list' %}">Receivings</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'inventory:transfer_list' %}">
-                                <i class="fas fa-exchange-alt"></i>
-                                <span>Transfers</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'inventory:issue_list' %}">
-                                <i class="fas fa-truck-loading"></i>
-                                <span>Store Issues</span>
-                            </a>
-                        </li>
-                        
-                    </ul>
-                </div>
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+<link href="{% static 'inventory/css/style.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'store_list' %}active{% endif %}" 
+                           href="{% url 'inventory:store_list' %}">
+                            <i class="bi bi-building"></i>
+                            Stores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'sale_point_list' %}active{% endif %}" 
+                           href="{% url 'inventory:sale_point_list' %}">
+                            <i class="bi bi-shop"></i>
+                            Sale Points
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'item_list' %}active{% endif %}" 
+                           href="{% url 'inventory:item_list' %}">
+                            <i class="bi bi-box"></i>
+                            Items
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'supplier_list' %}active{% endif %}" 
+                           href="{% url 'inventory:supplier_list' %}">
+                            <i class="bi bi-truck"></i>
+                            Suppliers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'kit_list' %}active{% endif %}" 
+                           href="{% url 'inventory:kit_list' %}">
+                            <i class="bi bi-boxes"></i>
+                            Item Kits
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'adjustment_list' %}active{% endif %}" 
+                           href="{% url 'inventory:adjustment_list' %}">
+                            <i class="bi bi-arrow-left-right"></i>
+                            Adjustments
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'requisition_list' %}active{% endif %}" 
+                           href="{% url 'inventory:requisition_list' %}">
+                            <i class="bi bi-cart"></i>
+                            Requisitions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'receiving_list' %}active{% endif %}" 
+                           href="{% url 'inventory:receiving_list' %}">
+                            <i class="bi bi-box-arrow-in-down"></i>
+                            Receivings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'issue_list' %}active{% endif %}" 
+                           href="{% url 'inventory:issue_list' %}">
+                            <i class="bi bi-box-arrow-up"></i>
+                            Issues
+                        </a>
+                    </li>
+                </ul>
             </div>
         </nav>
-    </header>
 
-    <main role="main" class="container-fluid px-5 mt-4">
-        {% block content %}
-        <!-- This is where child templates will insert their specific content -->
-        {% endblock %}
-    </main>
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">{% block page_title %}{% endblock %}</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    {% block page_actions %}{% endblock %}
+                </div>
+            </div>
 
-    <footer class="footer mt-auto py-3 bg-light">
-        <div class="container">
-            <span class="text-muted">© 2025 Your Company Name</span>
-        </div>
-    </footer>
-    
-   
-    <script src=""></script> <!-- Bootstrap JS -->
-</body>
-</html>
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'inventory/js/main.js' %}"></script>
+{% endblock %}

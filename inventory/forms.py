@@ -4,69 +4,148 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from .models import *
 from company.models import Branch,Department,Category
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 class StoreForm(forms.ModelForm):
+    """Form for creating and editing stores."""
+    
     class Meta:
         model = Store
-        fields = ['name', 'branch','address', 'contact_person', 'contact_number']
+        fields = ['name', 'address', 'branch', 'contact_person', 'contact_number', 'status', 'notes']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter store name'}),
+            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter store address'}),
+            'branch': forms.Select(attrs={'class': 'form-control'}),
+            'contact_person': forms.Select(attrs={'class': 'form-control'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter contact number'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter any additional notes'}),
+        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['branch'].queryset = Branch.objects.all()
-        self.helper = FormHelper()
-        self.helper.add_input(Submit('submit', 'Save'))
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        if Store.objects.filter(name=name).exclude(pk=self.instance.pk if self.instance else None).exists():
+            raise ValidationError('A store with this name already exists.')
+        return name
 
 class SalePointForm(forms.ModelForm):
+    """Form for creating and editing sale points."""
+    
     class Meta:
         model = SalePoint
-        fields = ['name', 'branch','address', 'contact_person', 'contact_number']
+        fields = ['name', 'address', 'branch', 'contact_person', 'contact_number', 'status', 'notes']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter sale point name'}),
+            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter sale point address'}),
+            'branch': forms.Select(attrs={'class': 'form-control'}),
+            'contact_person': forms.Select(attrs={'class': 'form-control'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter contact number'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter any additional notes'}),
+        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['branch'].queryset = Branch.objects.all()
-    
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        if SalePoint.objects.filter(name=name).exclude(pk=self.instance.pk if self.instance else None).exists():
+            raise ValidationError('A sale point with this name already exists.')
+        return name
+
 class SupplierForm(forms.ModelForm):
+    """Form for creating and editing suppliers."""
+    
     class Meta:
         model = Supplier
-        fields = ['name', 'address', 'contact_person', 'contact_number']
-        
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.add_input(Submit('submit', 'Save'))
+        fields = ['name', 'address', 'contact_person', 'contact_number', 'email', 'status', 'payment_terms', 'tax_number', 'notes']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter supplier name'}),
+            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter supplier address'}),
+            'contact_person': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter contact person name'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter contact number'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter email address'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'payment_terms': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter payment terms'}),
+            'tax_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter tax number'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter any additional notes'}),
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        if Supplier.objects.filter(name=name).exclude(pk=self.instance.pk if self.instance else None).exists():
+            raise ValidationError('A supplier with this name already exists.')
+        return name
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if email and Supplier.objects.filter(email=email).exclude(pk=self.instance.pk if self.instance else None).exists():
+            raise ValidationError('A supplier with this email already exists.')
+        return email
 
 class ItemForm(forms.ModelForm):
-    store = forms.ModelChoiceField(queryset=Store.objects.all(), required=True, help_text="Select a store for this item")
+    """Form for creating and editing items."""
+    
     class Meta:
         model = Item
-        fields = ['name', 'bar_code','department','category','initial_stock','buying_price','selling_price','is_sellable','smallest_unit','minimum_stock','optimum_stock']
-        
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        branch = Branch.objects.first()
-        self.fields['department'].queryset = branch.department_set.all()
-        self.fields['category'].queryset = Category.objects.none()
+        fields = [
+            'name', 'bar_code', 'department', 'category', 'initial_stock',
+            'status', 'buying_price', 'selling_price', 'smallest_unit',
+            'is_sellable', 'is_service', 'minimum_stock', 'optimum_stock',
+            'reorder_point', 'lead_time_days', 'location', 'weight',
+            'dimensions', 'manufacturer', 'model_number', 'serial_number',
+            'warranty_period', 'expiry_date', 'notes'
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter item name'}),
+            'bar_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter barcode'}),
+            'department': forms.Select(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'initial_stock': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'buying_price': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
+            'selling_price': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
+            'smallest_unit': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter smallest unit'}),
+            'is_sellable': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_service': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'minimum_stock': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'optimum_stock': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'reorder_point': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'lead_time_days': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter storage location'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
+            'dimensions': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter dimensions (LxWxH)'}),
+            'manufacturer': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter manufacturer name'}),
+            'model_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter model number'}),
+            'serial_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter serial number'}),
+            'warranty_period': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'expiry_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter any additional notes'}),
+        }
 
-        if 'department' in self.data:
-            try:
-                department_id = int(self.data.get('department'))
-                self.fields['category'].queryset = Category.objects.filter(department=department_id)
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk:
-            self.fields['category'].queryset = Category.objects.filter(department=self.instance.department)
+    def clean_bar_code(self):
+        bar_code = self.cleaned_data['bar_code']
+        if bar_code and Item.objects.filter(bar_code=bar_code).exclude(pk=self.instance.pk if self.instance else None).exists():
+            raise ValidationError('An item with this barcode already exists.')
+        return bar_code
 
-    def save(self, commit=True):
-        item = super().save(commit=False)
-        if commit:
-            item.save()
-            store = self.cleaned_data['store']
-            quantity = item.initial_stock
-            StoreItem.objects.create(store=store, item=item, quantity=quantity) 
-            
-        return item
-    
-    
+    def clean(self):
+        cleaned_data = super().clean()
+        buying_price = cleaned_data.get('buying_price')
+        selling_price = cleaned_data.get('selling_price')
+        minimum_stock = cleaned_data.get('minimum_stock')
+        optimum_stock = cleaned_data.get('optimum_stock')
+        reorder_point = cleaned_data.get('reorder_point')
+
+        if buying_price and selling_price and selling_price < buying_price:
+            raise ValidationError('Selling price cannot be less than buying price.')
+
+        if minimum_stock and optimum_stock and optimum_stock < minimum_stock:
+            raise ValidationError('Optimum stock cannot be less than minimum stock.')
+
+        if minimum_stock and reorder_point and reorder_point > minimum_stock:
+            raise ValidationError('Reorder point cannot be greater than minimum stock.')
+
+        return cleaned_data
+
 class ItemKitForm(forms.ModelForm):
     class Meta:
         model = ItemKit
@@ -106,186 +185,96 @@ class ItemUnitForm(forms.ModelForm):
         fields = ['item', 'unit', 'smallest_units', 'buying_price', 'selling_price']
         
 class AdjustmentForm(forms.ModelForm):
+    """Form for creating inventory adjustments."""
+    
     class Meta:
         model = Adjustment
-        fields = ['item', 'quantity', 'reason', 'user_responsible','in_store','store','sale_point']
+        fields = ['item', 'quantity', 'reason', 'notes']
         widgets = {
-            'reason': forms.Textarea(attrs={'rows': 1}),
+            'item': forms.Select(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '-999999', 'max': '999999'}),
+            'reason': forms.Select(attrs={'class': 'form-control'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter adjustment details'}),
         }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['store'].queryset = Store.objects.filter(status='Active')
-        self.fields['sale_point'].queryset = SalePoint.objects.filter(status='Active')
-        
-        # Make the store and sale_point fields not required in the form
-        # (they'll be required based on the in_store value)
-        self.fields['store'].required = False
-        self.fields['sale_point'].required = False
-        
-        # Add some JavaScript to handle the in_store toggle
-        self.fields['in_store'].widget.attrs.update({
-            'onchange': 'toggleLocationFields(this.checked)'
-        })
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        in_store = cleaned_data.get('in_store')
-        store = cleaned_data.get('store')
-        sale_point = cleaned_data.get('sale_point')
-        
-        if in_store and not store:
-            self.add_error('store', 'Store is required when adjusting store inventory')
-        
-        if not in_store and not sale_point:
-            self.add_error('sale_point', 'Sale point is required when adjusting sale point inventory')
-            
-        return cleaned_data
-class RequisitionForm(forms.ModelForm):
-    class Meta:
-        model = Requisition
-        fields = ['department','user_responsible']
-    
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-        branch = Branch.objects.first()
-        self.fields['department'].queryset = branch.department_set.all()
-        
-
-class RequisitionForm(forms.ModelForm):
-    class Meta:
-        model = Requisition
-        fields = ['department', 'user_responsible']
-        widgets = {
-            'department': forms.Select(attrs={'class': 'form-select'}),
-            'user_responsible': forms.Select(attrs={'class': 'form-select'}),
-        }
-
-class RequisitionItemForm(forms.ModelForm):
-    class Meta:
-        model = RequisitionItem
-        fields = ['item', 'unit', 'quantity', 'unit_cost', 'total_cost', 'available_stock']
-        widgets = {
-            'item': forms.Select(attrs={'class': 'form-select item-select'}),
-            'unit': forms.Select(attrs={'class': 'form-select unit-select'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control quantity-input'}),
-            'unit_cost': forms.NumberInput(attrs={'class': 'form-control unit-cost', 'readonly': 'readonly'}),
-            'total_cost': forms.NumberInput(attrs={'class': 'form-control total-cost', 'readonly': 'readonly'}),
-            'available_stock': forms.NumberInput(attrs={'class': 'form-control available-stock', 'readonly': 'readonly'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # Don't set an empty queryset - instead use all units but let JS filter them
-        if self.instance and self.instance.item_id:
-            self.fields['unit'].queryset = ItemUnit.objects.filter(item=self.instance.item)
-        else:
-            # Use all units instead of none - the JS will filter them appropriately
-            self.fields['unit'].queryset = ItemUnit.objects.all()
 
     def clean(self):
         cleaned_data = super().clean()
+        quantity = cleaned_data.get('quantity')
         item = cleaned_data.get('item')
-        unit = cleaned_data.get('unit')
-        
-        if item and unit:
-            # Check if the unit belongs to the selected item
-            if not ItemUnit.objects.filter(item=item, id=unit.id).exists():
-                self.add_error('unit', 'Please select a valid unit for this item.')
-        
-        return cleaned_data
-# Create the formset for RequisitionItem
-RequisitionItemFormSet = inlineformset_factory(
-    Requisition, 
-    RequisitionItem,
-    form=RequisitionItemForm,
-    extra=1,
-    can_delete=True
-)
 
-class RequisitionApprovalForm(forms.ModelForm):
+        if item and quantity:
+            if quantity < 0 and abs(quantity) > item.total_stock():
+                raise ValidationError('Adjustment quantity cannot exceed available stock.')
+
+        return cleaned_data
+
+class RequisitionForm(forms.ModelForm):
+    """Form for creating requisitions."""
+    
     class Meta:
         model = Requisition
-        fields = ['approved', 'approved_by']
+        fields = ['department', 'item', 'quantity', 'priority', 'notes']
         widgets = {
-            'approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'approved_by': forms.Select(attrs={'class': 'form-select'}),
+            'department': forms.Select(attrs={'class': 'form-control'}),
+            'item': forms.Select(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'priority': forms.Select(attrs={'class': 'form-control'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter requisition details'}),
         }
 
 class ReceivingForm(forms.ModelForm):
+    """Form for recording received items."""
+    
     class Meta:
         model = Receiving
-        fields = ['user_responsible','department','supplier','is_store','store','sale_point']
+        fields = ['supplier', 'reference_number', 'receiving_date', 'notes']
         widgets = {
-            'is_store':forms.CheckboxInput(attrs={'class':'form-check-input is-store'}),
-            'store':forms.Select(attrs={'class':'form-select store-select'}),
-            'sale_point':forms.Select(attrs={'class':'form-select sale-point-select'})
+            'supplier': forms.Select(attrs={'class': 'form-control'}),
+            'reference_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter reference number'}),
+            'receiving_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter receiving details'}),
         }
+
+    def clean_receiving_date(self):
+        receiving_date = self.cleaned_data['receiving_date']
+        if receiving_date > timezone.now().date():
+            raise ValidationError('Receiving date cannot be in the future.')
+        return receiving_date
+
+class IssueForm(forms.ModelForm):
+    """Form for recording issued items."""
     
-    
-    def __init__(self,*args, **kwargs):
-        super().__init__(*args, **kwargs)
-        branch = Branch.objects.first()
-        self.fields['department'].queryset = Department.objects.filter(branch=branch)
-        self.fields['store'].queryset = Store.objects.all().filter(branch=branch)
-        self.fields['sale_point'].queryset = SalePoint.objects.all().filter(branch=branch)
-    
+    class Meta:
+        model = Issue
+        fields = ['store', 'sale_point', 'item', 'quantity', 'notes']
+        widgets = {
+            'store': forms.Select(attrs={'class': 'form-control'}),
+            'sale_point': forms.Select(attrs={'class': 'form-control'}),
+            'item': forms.Select(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter issue details'}),
+        }
+
     def clean(self):
         cleaned_data = super().clean()
-        is_store = cleaned_data.get('is_store')
         store = cleaned_data.get('store')
         sale_point = cleaned_data.get('sale_point')
-        
-        if is_store and not store:
-            self.add_error('store',"If Is Store is checked you must select a store")
-        else:
-            if not sale_point and not is_store:
-                self.add_error('sale_point',"If Is Store is Unchecked you must select a sale point")  
-
-class ReceivedItemForm(forms.ModelForm):
-    class Meta:
-        model = ReceivedItem
-        fields = ['item','unit','quantity','unit_price','total_cost']
-        widgets = {
-            'item':forms.Select(attrs={'class':'form-select item-select'}),
-            'unit':forms.Select(attrs={'class':'form-select unit-select'}),
-            'quantity':forms.NumberInput(attrs={'class':'form-input quantity-input'}),
-            'unit_price':forms.NumberInput(attrs={'class':'form-input unit-price','readonly':'readonly'}),
-            'total_cost':forms.NumberInput(attrs={'class':'form-input total-cost','readonly':'readonly'}),
-        }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # Don't set an empty queryset - instead use all units but let JS filter them
-        if self.instance and self.instance.item_id:
-            self.fields['unit'].queryset = ItemUnit.objects.filter(item=self.instance.item)
-        else:
-            # Use all units instead of none - the JS will filter them appropriately
-            self.fields['unit'].queryset = ItemUnit.objects.all()  
-    
-    def clean(self):
-        cleaned_data = super().clean()
         item = cleaned_data.get('item')
-        unit = cleaned_data.get('unit')
-        
-        if item and unit:
-            # Check if the unit belongs to the selected item
-            if not ItemUnit.objects.filter(item=item, id=unit.id).exists():
-                self.add_error('unit', 'Please select a valid unit for this item.')
-        
-        return cleaned_data   
+        quantity = cleaned_data.get('quantity')
 
-ReceivedItemFormSet = inlineformset_factory(
-    Receiving,ReceivedItem,
-    form=ReceivedItemForm,
-    extra=2,
-    can_delete=True,
-)    
+        if not store and not sale_point:
+            raise ValidationError('Either store or sale point must be specified.')
 
-        
-# Add these to your existing forms.py file
+        if store and sale_point:
+            raise ValidationError('Cannot specify both store and sale point.')
+
+        if item and quantity:
+            if store and quantity > item.store_stock:
+                raise ValidationError('Issue quantity cannot exceed available store stock.')
+            if sale_point and quantity > item.shop_stock:
+                raise ValidationError('Issue quantity cannot exceed available shop stock.')
+
+        return cleaned_data
 
 class TransferForm(forms.ModelForm):
     class Meta:
@@ -329,14 +318,6 @@ TransferItemFormSet = forms.inlineformset_factory(
     Transfer, TransferItem, form=TransferItemForm,
     extra=1, can_delete=True
 )
-
-class IssueForm(forms.ModelForm):
-    class Meta:
-        model = Issue
-        fields = ['store', 'sale_point', 'requested_by', 'notes']
-        widgets = {
-            'notes': forms.Textarea(attrs={'rows': 2}),
-        }
 
 class IssueItemForm(forms.ModelForm):
     class Meta:

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Reports</h2>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Available Reports -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Available Reports</h4>
+                </div>
+                <div class="card-body">
+                    {% for report in report_types %}
+                    <div class="report-item mb-3">
+                        <h5>{{ report.name }}</h5>
+                        <p>{{ report.description }}</p>
+                        <div class="btn-group">
+                            <a href="{% url 'reports:generate_report' report.id %}?format=pdf" class="btn btn-primary btn-sm">Generate PDF</a>
+                            <a href="{% url 'reports:generate_report' report.id %}?format=excel" class="btn btn-success btn-sm">Generate Excel</a>
+                            <a href="{% url 'reports:schedule_report' report.id %}" class="btn btn-info btn-sm">Schedule</a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>No reports available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Scheduled Reports -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Your Scheduled Reports</h4>
+                </div>
+                <div class="card-body">
+                    {% for schedule in schedules %}
+                    <div class="schedule-item mb-3">
+                        <h5>{{ schedule.report_type.name }}</h5>
+                        <p>Schedule: {{ schedule.schedule_time }}</p>
+                        <p>Recipients: {{ schedule.email_recipients }}</p>
+                        <p>Last Run: {{ schedule.last_run|default:"Never" }}</p>
+                        <p>Next Run: {{ schedule.next_run|default:"Not scheduled" }}</p>
+                    </div>
+                    {% empty %}
+                    <p>No scheduled reports.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Report History -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4>Recent Reports</h4>
+                </div>
+                <div class="card-body">
+                    {% for report in history %}
+                    <div class="history-item mb-3">
+                        <h5>{{ report.report_type.name }}</h5>
+                        <p>Generated: {{ report.generated_at }}</p>
+                        <p>Format: {{ report.format }}</p>
+                        <p>Status: {{ report.status }}</p>
+                    </div>
+                    {% empty %}
+                    <p>No report history.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,186 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block attendance_content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Attendance Reports</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Filters -->
+                    <form method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="start_date">Start Date</label>
+                                    <input type="date" class="form-control" id="start_date" name="start_date" 
+                                           value="{{ start_date|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="end_date">End Date</label>
+                                    <input type="date" class="form-control" id="end_date" name="end_date" 
+                                           value="{{ end_date|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="employee">Employee</label>
+                                    <select class="form-control" id="employee" name="employee">
+                                        <option value="">All Employees</option>
+                                        {% for user in users %}
+                                            <option value="{{ user.id }}" {% if employee_id == user.id|stringformat:"i" %}selected{% endif %}>
+                                                {{ user.get_full_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary btn-block">Generate Report</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Summary Statistics -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total Present</h5>
+                                    <h2 class="card-text">{{ summaries.count }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Late Arrivals</h5>
+                                    <h2 class="card-text">{{ summaries.filter.is_late=True.count }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Early Leaves</h5>
+                                    <h2 class="card-text">{{ summaries.filter.is_early_leave=True.count }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Average Hours</h5>
+                                    <h2 class="card-text">
+                                        {{ summaries.aggregate.avg.total_working_hours|floatformat:1 }}
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Records -->
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Employee</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Working Hours</th>
+                                    <th>Break Hours</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for summary in summaries %}
+                                <tr>
+                                    <td>{{ summary.date }}</td>
+                                    <td>{{ summary.employee.get_full_name }}</td>
+                                    <td>{{ summary.check_in_time|default:"-" }}</td>
+                                    <td>{{ summary.check_out_time|default:"-" }}</td>
+                                    <td>{{ summary.total_working_hours }}</td>
+                                    <td>{{ summary.total_break_hours }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ summary.status|lower }}">
+                                            {{ summary.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" 
+                                                onclick="showDetails('{{ summary.id }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary" 
+                                                onclick="exportRecord('{{ summary.id }}')">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No records found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">Attendance Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="detailsContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+function showDetails(summaryId) {
+    // Load and show details in modal
+    fetch(`/attendance/summary/${summaryId}/details/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('detailsContent').innerHTML = data.html;
+            $('#detailsModal').modal('show');
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function exportRecord(summaryId) {
+    // Export record as PDF or Excel
+    window.location.href = `/attendance/summary/${summaryId}/export/`;
+}
+
+// Initialize date pickers
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any initialization code here
+});
+</script>
+{% endblock %} 

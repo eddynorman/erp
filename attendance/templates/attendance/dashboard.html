@@ -1,0 +1,103 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block attendance_content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Attendance Dashboard</h2>
+    
+    <!-- Today's Status -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">Today's Status</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Check-in/Check-out</h5>
+                    {% if today_record %}
+                        {% for record in today_record %}
+                            {% if record.attendance_type == 'check_in' %}
+                                <p><strong>Check-in:</strong> {{ record.time }}</p>
+                            {% elif record.attendance_type == 'check_out' %}
+                                <p><strong>Check-out:</strong> {{ record.time }}</p>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p>No attendance records for today</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h5>Break Times</h5>
+                    {% if today_record %}
+                        {% for record in today_record %}
+                            {% if record.attendance_type == 'break_start' %}
+                                <p><strong>Break Start:</strong> {{ record.time }}</p>
+                            {% elif record.attendance_type == 'break_end' %}
+                                <p><strong>Break End:</strong> {{ record.time }}</p>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p>No break records for today</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Summary -->
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">Monthly Summary</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                            <th>Working Hours</th>
+                            <th>Break Hours</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for summary in month_summary %}
+                        <tr>
+                            <td>{{ summary.date }}</td>
+                            <td>{{ summary.check_in_time|default:"-" }}</td>
+                            <td>{{ summary.check_out_time|default:"-" }}</td>
+                            <td>{{ summary.total_working_hours }}</td>
+                            <td>{{ summary.total_break_hours }}</td>
+                            <td>
+                                <span class="badge badge-{{ summary.status|lower }}">
+                                    {{ summary.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No records found for this month</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    // Add any dashboard-specific JavaScript here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update the dashboard every minute
+        setInterval(function() {
+            location.reload();
+        }, 60000);
+    });
+</script>
+{% endblock %} 

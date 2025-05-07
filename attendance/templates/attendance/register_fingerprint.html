@@ -1,0 +1,160 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block attendance_content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Register Fingerprint</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div id="registration-status" class="alert alert-info">
+                            Place your finger on the scanner to register
+                        </div>
+                        <div id="fingerprint-scanner" class="mb-4">
+                            <i class="fas fa-fingerprint fa-5x"></i>
+                        </div>
+                        <div class="progress mb-3" style="display: none;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Registration Status</h5>
+                                    <div id="registration-info">
+                                        {% if fingerprint %}
+                                            <p><strong>Status:</strong> 
+                                                <span class="badge badge-success">Registered</span>
+                                            </p>
+                                            <p><strong>Last Updated:</strong> {{ fingerprint.last_updated }}</p>
+                                        {% else %}
+                                            <p><strong>Status:</strong> 
+                                                <span class="badge badge-warning">Not Registered</span>
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Instructions</h5>
+                                    <ol class="pl-3">
+                                        <li>Place your finger on the scanner</li>
+                                        <li>Hold it steady for 2-3 seconds</li>
+                                        <li>Lift your finger when prompted</li>
+                                        <li>Repeat the process 3 times for better accuracy</li>
+                                    </ol>
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Make sure your finger is clean and dry for best results
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const registrationStatus = document.getElementById('registration-status');
+    const fingerprintScanner = document.getElementById('fingerprint-scanner');
+    const progressBar = document.querySelector('.progress');
+    const progressBarInner = document.querySelector('.progress-bar');
+    let scanCount = 0;
+    const requiredScans = 3;
+
+    // Simulate fingerprint scanning (replace with actual fingerprint scanner integration)
+    fingerprintScanner.addEventListener('click', function() {
+        if (scanCount >= requiredScans) {
+            return;
+        }
+
+        registrationStatus.className = 'alert alert-warning';
+        registrationStatus.textContent = 'Scanning...';
+        progressBar.style.display = 'block';
+        progressBarInner.style.width = '0%';
+
+        // Simulate scanning progress
+        let progress = 0;
+        const interval = setInterval(function() {
+            progress += 5;
+            progressBarInner.style.width = progress + '%';
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                scanCount++;
+                
+                if (scanCount < requiredScans) {
+                    registrationStatus.className = 'alert alert-info';
+                    registrationStatus.textContent = `Scan ${scanCount} of ${requiredScans} complete. Place your finger again.`;
+                    progressBar.style.display = 'none';
+                } else {
+                    // All scans complete, send to server
+                    registrationStatus.className = 'alert alert-success';
+                    registrationStatus.textContent = 'Registration complete!';
+                    
+                    // Simulate sending template data
+                    fetch('{% url "attendance:register_fingerprint" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            template_data: 'simulated_template_data'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            setTimeout(function() {
+                                location.reload();
+                            }, 2000);
+                        } else {
+                            registrationStatus.className = 'alert alert-danger';
+                            registrationStatus.textContent = data.message || 'Error registering fingerprint';
+                        }
+                    })
+                    .catch(error => {
+                        registrationStatus.className = 'alert alert-danger';
+                        registrationStatus.textContent = 'Error: ' + error.message;
+                    });
+                }
+            }
+        }, 100);
+    });
+
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %} 

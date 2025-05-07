@@ -1,0 +1,141 @@
+{% extends 'attendance/base.html' %}
+{% load static %}
+
+{% block attendance_content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Check In/Out</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div id="fingerprint-status" class="alert alert-info">
+                            Place your finger on the scanner
+                        </div>
+                        <div id="fingerprint-scanner" class="mb-4">
+                            <i class="fas fa-fingerprint fa-5x"></i>
+                        </div>
+                        <div id="current-time" class="h3 mb-3">
+                            {{ current_time|time:"H:i:s" }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Today's Records</h5>
+                                    <div id="today-records">
+                                        {% if today_record %}
+                                            {% for record in today_record %}
+                                                <p>
+                                                    <strong>{{ record.get_attendance_type_display }}:</strong>
+                                                    {{ record.time }}
+                                                    {% if record.fingerprint_verified %}
+                                                        <i class="fas fa-check-circle text-success"></i>
+                                                    {% endif %}
+                                                </p>
+                                            {% endfor %}
+                                        {% else %}
+                                            <p>No records for today</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Instructions</h5>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-info-circle"></i> Place your finger on the scanner</li>
+                                        <li><i class="fas fa-info-circle"></i> Wait for verification</li>
+                                        <li><i class="fas fa-info-circle"></i> Your attendance will be recorded automatically</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fingerprintStatus = document.getElementById('fingerprint-status');
+    const fingerprintScanner = document.getElementById('fingerprint-scanner');
+    const currentTimeElement = document.getElementById('current-time');
+
+    // Update current time
+    function updateTime() {
+        const now = new Date();
+        currentTimeElement.textContent = now.toLocaleTimeString();
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // Simulate fingerprint scanning (replace with actual fingerprint scanner integration)
+    fingerprintScanner.addEventListener('click', function() {
+        fingerprintStatus.className = 'alert alert-warning';
+        fingerprintStatus.textContent = 'Scanning...';
+
+        setTimeout(function() {
+            // Simulate successful scan
+            fingerprintStatus.className = 'alert alert-success';
+            fingerprintStatus.textContent = 'Fingerprint verified!';
+
+            // Send attendance record
+            fetch('{% url "attendance:check_in_out" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    fingerprint_verified: true,
+                    location: 'Main Office'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    fingerprintStatus.className = 'alert alert-danger';
+                    fingerprintStatus.textContent = data.message || 'Error recording attendance';
+                }
+            })
+            .catch(error => {
+                fingerprintStatus.className = 'alert alert-danger';
+                fingerprintStatus.textContent = 'Error: ' + error.message;
+            });
+        }, 2000);
+    });
+
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %} 

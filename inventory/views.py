@@ -563,19 +563,44 @@ class RequisitionApproveView(UpdateView):
         messages.success(self.request, 'Requisition approval status updated.')
         return super().form_valid(form)
 
-# AJAX views for dynamic form handling
+@login_required
 def get_item_details(request):
     item_id = request.GET.get('item_id')
     if item_id:
-        item = get_object_or_404(Item, id=item_id)
-        units = ItemUnit.objects.filter(item=item)
-        
-        # Return both unit data and their IDs
-        return JsonResponse({
-            'available_stock': item.total_stock(),
-            'units': [{'id': unit.id, 'unit': str(unit.unit)} for unit in units]
+        item = get_object_or_404(Item, pk=item_id)
+        data = {
+            'id': item.id,
+            'name': item.name,
+            'description': item.description,
+            'unit': item.unit.name if item.unit else '',
+            'buying_price': float(item.buying_price),
+            'selling_price': float(item.selling_price),
+            'store_stock': item.store_stock,
+        }
+        return JsonResponse(data)
+    return JsonResponse({'error': 'No item ID provided'}, status=400)
+
+@login_required
+def get_item_units(request, item_id):
+    item = get_object_or_404(Item, pk=item_id)
+    units = []
+    if item.unit:
+        units.append({
+            'id': item.unit.id,
+            'name': item.unit.name,
+            'symbol': item.unit.symbol,
+            'is_base': True
         })
-    return JsonResponse({'error': 'No item selected'})
+        # Add any additional units if they exist
+        additional_units = item.additional_units.all()
+        for unit in additional_units:
+            units.append({
+                'id': unit.id,
+                'name': unit.name,
+                'symbol': unit.symbol,
+                'is_base': False
+            })
+    return JsonResponse({'units': units})
 
 def get_unit_price(request):
     unit_id = request.GET.get('unit_id')
@@ -898,6 +923,17 @@ class IssueDetailView(DetailView):
     template_name = 'inventory/issue_detail.html'
     context_object_name = 'issue'
 
+class IssueDeleteView(DeleteView):
+    model = Issue
+    template_name = 'inventory/gen_confirm_delete.html'
+    success_url = reverse_lazy('inventory:issue_list')
+
+    def delete(self, request, *args, **kwargs):
+        issue = self.get_object()
+        with transaction.atomic():
+            messages.success(request, 'Issue deleted successfully.')
+            return super().delete(request, *args, **kwargs)
+
 class IssueUpdateView(UpdateView):
     model = Issue
     form_class = IssueForm
@@ -991,3 +1027,51 @@ def reject_issue(request, pk):
         messages.error(request, f"Error rejecting issue request: {str(e)}")
     
     return redirect('inventory:issue_detail', pk=issue.pk)        
+
+class SupplierDetailView(DetailView):
+    model = Supplier
+    template_name = 'inventory/supplier_detail.html'
+    context_object_name = 'supplier'        
+
+class ItemKitDeleteView(DeleteView):
+    model = ItemKit
+    template_name = 'inventory/gen_confirm_delete.html'
+    success_url = reverse_lazy('inventory:kit_list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Item kit deleted successfully.')
+        return super().delete(request, *args, **kwargs)        
+
+class AdjustmentUpdateView(UpdateView):
+    model = Adjustment
+    form_class = AdjustmentForm
+    template_name = 'inventory/adjustment_form.html'
+    success_url = reverse_lazy('inventory:adjustment_list')
+
+    def form_valid(self, form):
+        with transaction.atomic():
+            adjustment = form.save(commit=False)
+            adjustment.user_responsible = self.request.user
+            adjustment.save()
+            messages.success(self.request, 'Inventory adjustment updated successfully.')
+            return super().form_valid(form)
+
+class AdjustmentDetailView(DetailView):
+    model = Adjustment
+    template_name = 'inventory/adjustment_detail.html'
+    context_object_name = 'adjustment'        
+
+class AdjustmentDeleteView(DeleteView):
+    model = Adjustment
+    template_name = 'inventory/gen_confirm_delete.html'
+    success_url = reverse_lazy('inventory:adjustment_list')
+
+    def delete(self, request, *args, **kwargs):
+        adjustment = self.get_object()
+        with transaction.atomic():
+            # Reverse the adjustment effect on stock
+            item = adjustment.item
+            item.store_stock -= adjustment.quantity
+            item.save()
+            messages.success(request, 'Inventory adjustment deleted successfully.')
+            return super().delete(request, *args, **kwargs)        

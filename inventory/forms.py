@@ -189,12 +189,9 @@ class AdjustmentForm(forms.ModelForm):
     
     class Meta:
         model = Adjustment
-        fields = ['item', 'quantity', 'reason', 'notes']
+        fields = ['item', 'quantity', 'reason']
         widgets = {
-            'item': forms.Select(attrs={'class': 'form-control'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '-999999', 'max': '999999'}),
-            'reason': forms.Select(attrs={'class': 'form-control'}),
-            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter adjustment details'}),
+            'reason': forms.Textarea(attrs={'rows': 3}),
         }
 
     def clean(self):
@@ -213,13 +210,9 @@ class RequisitionForm(forms.ModelForm):
     
     class Meta:
         model = Requisition
-        fields = ['department', 'item', 'quantity', 'priority', 'notes']
+        fields = ['department']
         widgets = {
             'department': forms.Select(attrs={'class': 'form-control'}),
-            'item': forms.Select(attrs={'class': 'form-control'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            'priority': forms.Select(attrs={'class': 'form-control'}),
-            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter requisition details'}),
         }
 
 class ReceivingForm(forms.ModelForm):
@@ -227,12 +220,13 @@ class ReceivingForm(forms.ModelForm):
     
     class Meta:
         model = Receiving
-        fields = ['supplier', 'reference_number', 'receiving_date', 'notes']
+        fields = ['supplier', 'department', 'is_store', 'store', 'sale_point']
         widgets = {
             'supplier': forms.Select(attrs={'class': 'form-control'}),
-            'reference_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter reference number'}),
-            'receiving_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter receiving details'}),
+            'department': forms.Select(attrs={'class': 'form-control'}),
+            'is_store': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'store': forms.Select(attrs={'class': 'form-control'}),
+            'sale_point': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def clean_receiving_date(self):
@@ -246,12 +240,11 @@ class IssueForm(forms.ModelForm):
     
     class Meta:
         model = Issue
-        fields = ['store', 'sale_point', 'item', 'quantity', 'notes']
+        fields = ['store', 'sale_point', 'requested_by', 'notes']
         widgets = {
             'store': forms.Select(attrs={'class': 'form-control'}),
             'sale_point': forms.Select(attrs={'class': 'form-control'}),
-            'item': forms.Select(attrs={'class': 'form-control'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+            'requested_by': forms.Select(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter issue details'}),
         }
 
@@ -259,20 +252,12 @@ class IssueForm(forms.ModelForm):
         cleaned_data = super().clean()
         store = cleaned_data.get('store')
         sale_point = cleaned_data.get('sale_point')
-        item = cleaned_data.get('item')
-        quantity = cleaned_data.get('quantity')
 
         if not store and not sale_point:
             raise ValidationError('Either store or sale point must be specified.')
 
         if store and sale_point:
             raise ValidationError('Cannot specify both store and sale point.')
-
-        if item and quantity:
-            if store and quantity > item.store_stock:
-                raise ValidationError('Issue quantity cannot exceed available store stock.')
-            if sale_point and quantity > item.shop_stock:
-                raise ValidationError('Issue quantity cannot exceed available shop stock.')
 
         return cleaned_data
 
@@ -348,4 +333,12 @@ class IssueApprovalForm(forms.ModelForm):
         fields = ['approved_by', 'notes']
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 2}),
+        }
+
+class RequisitionApprovalForm(forms.ModelForm):
+    class Meta:
+        model = Requisition
+        fields = ['approved_by']
+        widgets = {
+            'approved_by': forms.Select(attrs={'class': 'form-control'}),
         }

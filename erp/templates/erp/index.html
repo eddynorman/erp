@@ -24,12 +24,46 @@
 <div class="container mt-5">
     <h2 class="text-center mb-4">Mtomawe ERP Dashboard</h2>
     <div class="row g-4">
+        <!-- Main Dashboard Cards -->
+        <div class="col-md-4">
+            <a href="{% url 'sales:dashboard' %}" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h4>Sales Dashboard</h4>
+                        <p class="text-muted">Manage sales, orders, and customer data</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'reports:dashboard' %}" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h4>Reports Dashboard</h4>
+                        <p class="text-muted">View and generate various reports</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'users:dashboard' %}" class="text-decoration-none">
+                <div class="card dashboard-card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h4>Users Dashboard</h4>
+                        <p class="text-muted">Manage users, roles, and permissions</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    <div class="row g-4">
         {% for app in apps %}
         <div class="col-md-4">
-            <a href="{{ app.link }}" class="text-decoration-none text-dark">
+            <a href="{{ app.link }}" class="text-decoration-none">
                 <div class="card dashboard-card shadow-sm h-100">
                     <div class="card-body text-center">
                         <h4>{{ app.name }}</h4>
+                        <p class="text-muted">{{ app.description }}</p>
                     </div>
                 </div>
             </a>

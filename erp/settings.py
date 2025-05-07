@@ -43,10 +43,12 @@ INSTALLED_APPS = [
     'assets.apps.AssetsConfig',
     'users.apps.UsersConfig',
     'sales.apps.SalesConfig',
+    'attendance.apps.AttendanceConfig',
     'crispy_forms',
     'crispy_bootstrap5',
     'django.contrib.humanize',
     'reports',
+    'expenses',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

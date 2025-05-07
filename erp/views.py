@@ -10,17 +10,8 @@ def index(request):
         {'name': 'Sales', 'link': '/sales/', 'description': 'Manage sales'},
         {'name': 'Expenses', 'link': '/expenses/', 'description': 'Manage expenses'},
         {'name': 'Reports', 'link': '/reports/', 'description': 'Manage reports'},
+        {'name': 'Users', 'link': '/users/', 'description': 'Manage users'},
+        {'name':'Attendance', 'link': '/attendance/', 'description': 'Manage attendance'},
     ]
     return render(request, 'erp/index.html', {'apps': apps})
 
-@login_required
-def sales_dashboard(request):
-    return render(request, 'erp/sales_dashboard.html')
-
-@login_required
-def reports_dashboard(request):
-    return render(request, 'erp/reports_dashboard.html')
-
-@login_required
-def users_dashboard(request):
-    return render(request, 'erp/users_dashboard.html')

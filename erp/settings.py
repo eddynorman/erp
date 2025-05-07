@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'django.contrib.humanize',
+    'reports',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -151,3 +152,17 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Update with your SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ''  # Add your email
+EMAIL_HOST_PASSWORD = ''  # Add your email password or app-specific password
+DEFAULT_FROM_EMAIL = ''  # Add your default from email
+
+# Report Settings
+REPORT_STORAGE_PATH = os.path.join(BASE_DIR, 'reports', 'generated_reports')
+if not os.path.exists(REPORT_STORAGE_PATH):
+    os.makedirs(REPORT_STORAGE_PATH)

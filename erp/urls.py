@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from erp.views import index
+from erp.views import index, sales_dashboard, reports_dashboard, users_dashboard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +25,5 @@ urlpatterns = [
     path('assets/', include('assets.urls')),
     path('users/', include('users.urls')),
     path('sales/', include('sales.urls')),
+    path('reports/', include('reports.urls')),
 ]

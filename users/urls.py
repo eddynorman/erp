@@ -18,4 +18,5 @@ urlpatterns = [
     path('groups/<int:pk>/edit/', views.group_edit, name='group_edit'),
     path('groups/<int:pk>/delete/', views.group_delete, name='group_delete'),
     path('groups/<int:pk>/permissions/', views.group_permissions, name='group_permissions'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 ] 

@@ -149,3 +149,7 @@ def user_profile(request, pk):
         'profile': profile,
         'user_groups': user_groups
     })
+
+@login_required
+def dashboard(request):
+    return render(request, 'users/dashboard.html')

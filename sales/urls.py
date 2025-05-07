@@ -50,4 +50,7 @@ urlpatterns = [
     path('api/kits/<int:kit_id>/price/', views.get_kit_price, name='get_kit_price'),
     path('api/items/<int:item_id>/stock/', views.get_item_stock, name='get_item_stock'),
     path('api/kits/<int:kit_id>/stock/', views.get_kit_stock, name='get_kit_stock'),
+
+    # Dashboard URL
+    path('', views.dashboard, name='dashboard'),
 ] 

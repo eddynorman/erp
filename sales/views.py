@@ -438,3 +438,7 @@ def get_kit_stock(request, kit_id):
             stock_info[kit_item.item.name] = stock.quantity if stock else 0
         return JsonResponse(stock_info)
     return JsonResponse({})
+
+@login_required
+def dashboard(request):
+    return render(request, 'sales/dashboard.html')

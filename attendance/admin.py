@@ -7,6 +7,7 @@ class AttendanceSettingsAdmin(admin.ModelAdmin):
                    'early_leave_threshold_minutes', 'break_duration_minutes')
     list_editable = ('working_hours_start', 'working_hours_end', 'late_threshold_minutes',
                     'early_leave_threshold_minutes', 'break_duration_minutes')
+    list_display_links = None  # This makes no fields clickable since all are editable
 
 @admin.register(FingerprintTemplate)
 class FingerprintTemplateAdmin(admin.ModelAdmin):

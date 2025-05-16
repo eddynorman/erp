@@ -4,6 +4,9 @@ from . import views
 app_name = 'inventory'
 
 urlpatterns = [
+    # Home
+    path('', views.HomeView.as_view(), name='dashboard'),
+    
     # Store URLs
     path('stores/', views.store_list, name='store_list'),
     path('stores/create/', views.store_create, name='store_create'),

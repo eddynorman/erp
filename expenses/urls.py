@@ -5,7 +5,7 @@ app_name = 'expenses'
 
 urlpatterns = [
     # Dashboard
-    path('dashboard/', views.dashboard, name='dashboard'),
+    path('', views.dashboard, name='dashboard'),
     
     # Expense CRUD
     path('expenses/', views.expense_list, name='expense_list'),

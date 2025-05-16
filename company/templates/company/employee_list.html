@@ -60,11 +60,11 @@
                 <tbody>
                     {% for employee in employee_list %}
                     <tr>
-                        <td>
+                        {% comment %} <td>
                             <a href="{% url 'company:employee_detail' employee.id %}" class="text-decoration-none">
                                 {{ employee.employee_name }}
                             </a>
-                        </td>
+                        </td> {% endcomment %}
                         <td>
                             <div>
                                 <a href="mailto:{{ employee.employee_email }}" class="text-decoration-none">
